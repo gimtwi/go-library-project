@@ -12,8 +12,11 @@ type Book struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 
 	Title       string `json:"title" binding:"required"`
-	Author      string `json:"author" binding:"required"`
 	Description string `json:"description"`
+	AuthorID    []uint `json:"authorID" binding:"required"`
+	GenreID     []uint `json:"genreID" binding:"required"`
+	Quantity    uint64 `json:"quantity"`
+	IsAvailable bool   `json:"isAvailable"`
 }
 
 type BookRepository interface {

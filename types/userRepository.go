@@ -23,29 +23,39 @@ type LoginRequest struct {
 }
 
 type User struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
-	Role UserRole `json:"role"`
+	LibraryCard string   `gorm:"unique" json:"libraryCard"`
+	Verified    string   `json:"verified"`
+	Role        UserRole `json:"role"`
 
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Username  string `json:"username" gorm:"unique"`
-	Email     string `json:"email" gorm:"unique"`
-	Password  string `json:"password"`
+	FirstName   string `json:"firstName"`
+	LastName    string `json:"lastName"`
+	Username    string `gorm:"unique" json:"username"`
+	Email       string `gorm:"unique" json:"email"`
+	Password    string `json:"password"`
+	PhoneNumber string `json:"phoneNumber"`
+	Address     string `json:"address"`
 }
 
 type UserResponse struct {
-	ID             uint      `json:"id"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
-	Role           UserRole  `json:"role"`
-	FirstName      string    `json:"firstName"`
-	LastName       string    `json:"lastName"`
-	Username       string    `json:"username"`
-	Email          string    `json:"email"`
-	PasswordExists bool      `json:"password"`
+	ID        uint      `json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	LibraryCard string   `json:"libraryCard"`
+	Verified    string   `json:"verified"`
+	Role        UserRole `json:"role"`
+
+	FirstName      string `json:"firstName"`
+	LastName       string `json:"lastName"`
+	Username       string `json:"username"`
+	Email          string `json:"email"`
+	PasswordExists bool   `json:"password"`
+	PhoneNumber    string `json:"phoneNumber"`
+	Address        string `json:"address"`
 }
 
 type ChangePasswordRequest struct {
