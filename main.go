@@ -15,6 +15,8 @@ func init() {
 }
 
 func main() {
+	// gin.SetMode(gin.ReleaseMode)
+
 	r := gin.Default()
 
 	userRepo := types.NewUserRepository(utils.DB)
@@ -37,10 +39,12 @@ func main() {
 	r.POST("/login", middleware.RateLimitMiddleware(), controllers.Login(userRepo))
 	r.GET("/logout", controllers.Logout(userRepo))
 
+	// TODO add middleware to each route
+
 	// book CRUD controller
 	r.GET("/book", controllers.GetAllBooks(bookRepo))
 	r.GET("/book/:id", controllers.GetBookByID(bookRepo))
-	r.POST("/book", controllers.CreateBook(bookRepo))
+	r.POST("/book", controllers.CreateBook(bookRepo, authorRepo, genreRepo))
 	r.PUT("/book/:id", controllers.UpdateBook(bookRepo))
 	r.DELETE("/book/:id", controllers.DeleteBook(bookRepo))
 

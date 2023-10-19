@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -20,6 +21,7 @@ type AuthorRepository interface {
 	GetByID(id uint) (*Author, error)
 	Update(author *Author) error
 	Delete(id uint) error
+	CheckAuthor(id uint) error
 }
 
 type AuthorRepositoryImpl struct {
@@ -56,4 +58,15 @@ func (a *AuthorRepositoryImpl) Update(author *Author) error {
 
 func (a *AuthorRepositoryImpl) Delete(id uint) error {
 	return a.db.Delete(&Author{}, id).Error
+}
+
+func (a *AuthorRepositoryImpl) CheckAuthor(id uint) error {
+	_, err := a.GetByID(id)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
 }

@@ -13,8 +13,8 @@ type Book struct {
 
 	Title       string `json:"title" binding:"required"`
 	Description string `json:"description"`
-	AuthorID    []uint `json:"authorID" binding:"required"`
-	GenreID     []uint `json:"genreID" binding:"required"`
+	AuthorID    []uint `gorm:"-" json:"authorID" binding:"required"`
+	GenreID     []uint `gorm:"-" json:"genreID" binding:"required"`
 	Quantity    uint64 `json:"quantity"`
 	IsAvailable bool   `json:"isAvailable"`
 }

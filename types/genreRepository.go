@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -21,6 +22,7 @@ type GenreRepository interface {
 	GetByID(id uint) (*Genre, error)
 	Update(genre *Genre) error
 	Delete(id uint) error
+	CheckGenre(id uint) error
 }
 
 type GenreRepositoryImpl struct {
@@ -57,4 +59,15 @@ func (g *GenreRepositoryImpl) Update(genre *Genre) error {
 
 func (g *GenreRepositoryImpl) Delete(id uint) error {
 	return g.db.Delete(&Genre{}, id).Error
+}
+
+func (g *GenreRepositoryImpl) CheckGenre(id uint) error {
+	_, err := g.GetByID(id)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
 }
