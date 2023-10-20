@@ -48,73 +48,31 @@ func CreateBook(bookRepo types.BookRepository, authorRepo types.AuthorRepository
 			return
 		}
 
-		for _, authorID := range book.AuthorID {
-			err := authorRepo.CheckAuthor(authorID)
-			fmt.Println("cb", err)
+		associatedAuthors := make([]types.Author, 0)
+
+		for _, author := range book.Author {
+			a, err := authorRepo.GetByID(author.ID)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "author not found"})
 				return
 			}
+			associatedAuthors = append(associatedAuthors, *a)
 		}
 
-		for _, genreID := range book.GenreID {
-			err := genreRepo.CheckGenre(genreID)
+		book.Author = associatedAuthors
+
+		associatedGenres := make([]types.Genre, 0)
+
+		for _, genre := range book.Genre {
+			g, err := genreRepo.GetByID(genre.ID)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "genre not found"})
 				return
 			}
+			associatedGenres = append(associatedGenres, *g)
 		}
 
-		//concurrency
-
-		// authorCheck := make(chan error)
-		// genreCheck := make(chan error)
-
-		// for _, authorID := range book.AuthorID {
-		// 	go func(authorID uint) {
-		// 		authorCheck <- HandleAuthorCheck(authorRepo, authorID)
-		// 	}(authorID)
-		// }
-
-		// for _, genreID := range book.GenreID {
-		// 	go func(genreID uint) {
-		// 		genreCheck <- HandleGenreCheck(genreRepo, genreID)
-		// 	}(genreID)
-		// }
-
-		// var authorWg, genreWg sync.WaitGroup
-		// authorWg.Add(len(book.AuthorID))
-		// genreWg.Add(len(book.GenreID))
-
-		// go func() {
-		// 	authorWg.Wait()
-		// 	close(authorCheck)
-		// }()
-
-		// go func() {
-		// 	genreWg.Wait()
-		// 	close(genreCheck)
-		// }()
-
-		// go func() {
-		// 	for err := range authorCheck {
-		// 		if err != nil {
-		// 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		// 			return
-		// 		}
-		// 		authorWg.Done()
-		// 	}
-		// }()
-
-		// go func() {
-		// 	for err := range genreCheck {
-		// 		if err != nil {
-		// 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		// 			return
-		// 		}
-		// 		genreWg.Done()
-		// 	}
-		// }()
+		book.Genre = associatedGenres
 
 		if book.Quantity >= 1 {
 			book.IsAvailable = true

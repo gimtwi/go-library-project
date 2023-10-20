@@ -11,12 +11,12 @@ type Book struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
-	Title       string `json:"title" binding:"required"`
-	Description string `json:"description"`
-	AuthorID    []uint `gorm:"-" json:"authorID" binding:"required"`
-	GenreID     []uint `gorm:"-" json:"genreID" binding:"required"`
-	Quantity    uint64 `json:"quantity"`
-	IsAvailable bool   `json:"isAvailable"`
+	Title       string   `json:"title" binding:"required"`
+	Description string   `json:"description"`
+	Author      []Author `gorm:"many2many:book_author;" json:"author" binding:"required"`
+	Genre       []Genre  `gorm:"many2many:book_genre;" json:"genre" binding:"required"`
+	Quantity    uint64   `json:"quantity"`
+	IsAvailable bool     `json:"isAvailable"`
 }
 
 type BookRepository interface {
