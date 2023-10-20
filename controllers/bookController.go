@@ -1,10 +1,8 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gimtwi/go-library-project/types"
 	"github.com/gin-gonic/gin"
@@ -41,7 +39,6 @@ func GetBookByID(repo types.BookRepository) gin.HandlerFunc {
 
 func CreateBook(bookRepo types.BookRepository, authorRepo types.AuthorRepository, genreRepo types.GenreRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		start := time.Now()
 		var book types.Book
 		if err := c.ShouldBindJSON(&book); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -49,6 +46,7 @@ func CreateBook(bookRepo types.BookRepository, authorRepo types.AuthorRepository
 		}
 
 		associatedAuthors := make([]types.Author, 0)
+		associatedGenres := make([]types.Genre, 0)
 
 		for _, author := range book.Author {
 			a, err := authorRepo.GetByID(author.ID)
@@ -59,10 +57,6 @@ func CreateBook(bookRepo types.BookRepository, authorRepo types.AuthorRepository
 			associatedAuthors = append(associatedAuthors, *a)
 		}
 
-		book.Author = associatedAuthors
-
-		associatedGenres := make([]types.Genre, 0)
-
 		for _, genre := range book.Genre {
 			g, err := genreRepo.GetByID(genre.ID)
 			if err != nil {
@@ -72,6 +66,7 @@ func CreateBook(bookRepo types.BookRepository, authorRepo types.AuthorRepository
 			associatedGenres = append(associatedGenres, *g)
 		}
 
+		book.Author = associatedAuthors
 		book.Genre = associatedGenres
 
 		if book.Quantity >= 1 {
@@ -84,7 +79,6 @@ func CreateBook(bookRepo types.BookRepository, authorRepo types.AuthorRepository
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		fmt.Println("time taken for a book creation: ", time.Since(start))
 		c.JSON(http.StatusCreated, book)
 	}
 }
