@@ -3,14 +3,21 @@ package controllers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gimtwi/go-library-project/types"
 	"github.com/gin-gonic/gin"
 )
 
-func GetAllAuthors(repo types.AuthorRepository) gin.HandlerFunc {
+func GetOrderedFilteredAuthorsByName(repo types.AuthorRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authors, err := repo.GetAll()
+		var filters types.FilteredRequestBody
+		if err := c.ShouldBindJSON(&filters); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		authors, err := repo.GetAll(string(filters.Order), filters.Filter, filters.Limit)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -53,7 +60,7 @@ func CreateAuthor(repo types.AuthorRepository) gin.HandlerFunc {
 	}
 }
 
-func UpdateAuthor(repo types.AuthorRepository) gin.HandlerFunc {
+func UpdateAuthor(authorRepo types.AuthorRepository, bookRepo types.BookRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -69,10 +76,31 @@ func UpdateAuthor(repo types.AuthorRepository) gin.HandlerFunc {
 		}
 		author.ID = uint(id)
 
-		if err := repo.Update(&author); err != nil {
+		_, err = authorRepo.GetByID(uint(id))
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "author not found"})
+			return
+		}
+
+		if err := authorRepo.Update(&author); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+
+		associatedBooks, err := bookRepo.GetBooksByAuthor(author.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		for _, book := range associatedBooks {
+			book.Authors = append(book.Authors, author)
+			if err := bookRepo.Update(&book); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+		}
+
 		c.JSON(http.StatusOK, author)
 	}
 }
@@ -87,7 +115,11 @@ func DeleteAuthor(repo types.AuthorRepository) gin.HandlerFunc {
 		}
 
 		if err := repo.Delete(uint(id)); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			if strings.Contains(err.Error(), "foreign key constraint \"fk_book_authors_author\"") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "cannot delete author with associated books"})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			}
 			return
 		}
 		c.Status(http.StatusNoContent)

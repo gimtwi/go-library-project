@@ -18,7 +18,8 @@ type Hold struct {
 
 type HoldRepository interface {
 	Create(hold *Hold) error
-	GetAll() ([]Hold, error)
+	GetHoldsByUserID(userID uint) ([]Hold, error)
+	GetHoldsByBookID(bookID uint) ([]Hold, error)
 	GetByID(id uint) (*Hold, error)
 	Update(hold *Hold) error
 	Delete(id uint) error
@@ -36,9 +37,17 @@ func (h *HoldRepositoryImpl) Create(hold *Hold) error {
 	return h.db.Create(hold).Error
 }
 
-func (h *HoldRepositoryImpl) GetAll() ([]Hold, error) {
+func (h *HoldRepositoryImpl) GetHoldsByUserID(userID uint) ([]Hold, error) {
 	var holds []Hold
-	if err := h.db.Find(&holds).Error; err != nil {
+	if err := h.db.Find(&holds).Where("userID = ?", userID).Error; err != nil {
+		return nil, err
+	}
+	return holds, nil
+}
+
+func (h *HoldRepositoryImpl) GetHoldsByBookID(bookID uint) ([]Hold, error) {
+	var holds []Hold
+	if err := h.db.Find(&holds).Where("bookID = ?", bookID).Error; err != nil {
 		return nil, err
 	}
 	return holds, nil

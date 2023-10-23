@@ -8,11 +8,36 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetAllHolds(repo types.HoldRepository) gin.HandlerFunc {
+func GetHoldsByUserID(repo types.HoldRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		holds, err := repo.GetAll()
+		idStr := c.Param("id")
+		id, err := strconv.Atoi(idStr)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid hold id"})
+			return
+		}
+
+		holds, err := repo.GetHoldsByUserID(uint(id))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "no holds found"})
+			return
+		}
+		c.JSON(http.StatusOK, holds)
+	}
+}
+
+func GetHoldsByBookID(repo types.HoldRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idStr := c.Param("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid hold id"})
+			return
+		}
+
+		holds, err := repo.GetHoldsByBookID(uint(id))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "no holds found"})
 			return
 		}
 		c.JSON(http.StatusOK, holds)

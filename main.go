@@ -42,28 +42,31 @@ func main() {
 	// TODO add middleware to each route
 
 	// book CRUD controller
-	r.GET("/book", controllers.GetAllBooks(bookRepo))
+	r.GET("/book", controllers.GetOrderedFilteredBooksByTitle(bookRepo))
 	r.GET("/book/:id", controllers.GetBookByID(bookRepo))
+	r.GET("/book/author/:id", controllers.GetBooksByAuthorID(bookRepo))
+	r.GET("/book/genre/:id", controllers.GetBooksByGenreID(bookRepo))
 	r.POST("/book", controllers.CreateBook(bookRepo, authorRepo, genreRepo))
-	r.PUT("/book/:id", controllers.UpdateBook(bookRepo))
+	r.PUT("/book/:id", controllers.UpdateBook(bookRepo, authorRepo, genreRepo))
 	r.DELETE("/book/:id", controllers.DeleteBook(bookRepo))
 
 	// author CRUD controller
-	r.GET("/author", controllers.GetAllAuthors(authorRepo))
+	r.GET("/author", controllers.GetOrderedFilteredAuthorsByName(authorRepo))
 	r.GET("/author/:id", controllers.GetAuthorByID(authorRepo))
 	r.POST("/author", controllers.CreateAuthor(authorRepo))
-	r.PUT("/author/:id", controllers.UpdateAuthor(authorRepo))
+	r.PUT("/author/:id", controllers.UpdateAuthor(authorRepo, bookRepo))
 	r.DELETE("/author/:id", controllers.DeleteAuthor(authorRepo))
 
 	// genre CRUD controller
-	r.GET("/genre", controllers.GetAllGenres(genreRepo))
+	r.GET("/genre", controllers.GetOrderedFilteredGenresByName(genreRepo))
 	r.GET("/genre/:id", controllers.GetGenreByID(genreRepo))
 	r.POST("/genre", controllers.CreateGenre(genreRepo))
-	r.PUT("/genre/:id", controllers.UpdateGenre(genreRepo))
+	r.PUT("/genre/:id", controllers.UpdateGenre(genreRepo, bookRepo))
 	r.DELETE("/genre/:id", controllers.DeleteGenre(genreRepo))
 
 	// hold CRUD controller
-	r.GET("/hold", controllers.GetAllHolds(holdRepo))
+	r.GET("/hold/user/:id", controllers.GetHoldsByUserID(holdRepo))
+	r.GET("/hold/book/:id", controllers.GetHoldsByBookID(holdRepo))
 	r.GET("/hold/:id", controllers.GetHoldByID(holdRepo))
 	r.POST("/hold", controllers.CreateHold(holdRepo))
 	r.PUT("/hold/:id", controllers.UpdateHold(holdRepo))

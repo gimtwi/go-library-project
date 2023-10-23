@@ -12,11 +12,13 @@ type Author struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 
 	Name string `json:"name" binding:"required"`
+
+	Books []Book `gorm:"many2many:book_authors" json:"books"`
 }
 
 type AuthorRepository interface {
 	Create(author *Author) error
-	GetAll() ([]Author, error)
+	GetAll(order, filter string, limit uint) ([]Author, error)
 	GetByID(id uint) (*Author, error)
 	Update(author *Author) error
 	Delete(id uint) error
@@ -34,9 +36,9 @@ func (a *AuthorRepositoryImpl) Create(author *Author) error {
 	return a.db.Create(author).Error
 }
 
-func (a *AuthorRepositoryImpl) GetAll() ([]Author, error) {
+func (a *AuthorRepositoryImpl) GetAll(order, filter string, limit uint) ([]Author, error) {
 	var authors []Author
-	if err := a.db.Find(&authors).Error; err != nil {
+	if err := a.db.Preload("Books").Order("name "+order).Where("name LIKE ?", filter+"%").Limit(int(limit)).Find(&authors).Error; err != nil {
 		return nil, err
 	}
 	return authors, nil
@@ -44,7 +46,7 @@ func (a *AuthorRepositoryImpl) GetAll() ([]Author, error) {
 
 func (a *AuthorRepositoryImpl) GetByID(id uint) (*Author, error) {
 	var author Author
-	if err := a.db.First(&author, id).Error; err != nil {
+	if err := a.db.Preload("Books").First(&author, id).Error; err != nil {
 		return nil, err
 	}
 	return &author, nil
