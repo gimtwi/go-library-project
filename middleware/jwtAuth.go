@@ -98,7 +98,7 @@ func CheckPrivilege(repo types.UserRepository, role types.UserRole) gin.HandlerF
 	}
 }
 
-func CheckIfMe(repo types.UserRepository) gin.HandlerFunc {
+func CompareCookiesAndParameter(repo types.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		userID, err := strconv.Atoi(idStr)
@@ -106,6 +106,7 @@ func CheckIfMe(repo types.UserRepository) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
 			return
 		}
+
 		tokenStr, err := c.Cookie(os.Getenv("COOKIE_NAME"))
 
 		if err != nil {
@@ -141,7 +142,7 @@ func CheckIfMe(repo types.UserRepository) gin.HandlerFunc {
 			}
 
 			id := uint(math.Floor(idClaim))
-			user, errUser := repo.GetByID(uint(id))
+			user, errUser := repo.GetByID(id)
 			if errUser != nil {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}
@@ -158,6 +159,35 @@ func CheckIfMe(repo types.UserRepository) gin.HandlerFunc {
 		}
 
 		c.Next()
+	}
+}
+
+func GetUserIDFromTheToken(c *gin.Context) uint {
+	tokenStr, err := c.Cookie(os.Getenv("COOKIE_NAME"))
+	if err != nil {
+		return 0
+	}
+
+	token, err := ValidateJWT(tokenStr)
+	if err != nil {
+		return 0
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		if float64(time.Now().Unix()) > claims["exp"].(float64) {
+			return 0
+		}
+
+		idClaim, ok := claims["id"].(float64)
+		if !ok || idClaim < 0 {
+			return 0
+		}
+
+		id := uint(math.Floor(idClaim))
+		return id
+
+	} else {
+		return 0
 	}
 }
 

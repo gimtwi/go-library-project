@@ -32,7 +32,7 @@ func main() {
 	r.GET("/user/:id", controllers.GetUserByID(userRepo))
 	r.PUT("/user/new-moderator/:id", controllers.AssignRole(userRepo, types.Moderator))
 	r.PUT("/user/new-admin/:id", controllers.AssignRole(userRepo, types.Admin))
-	r.PUT("/user/:id/change-password", middleware.CheckIfMe(userRepo), controllers.ChangePassword(userRepo))
+	r.PUT("/user/:id/change-password", middleware.CompareCookiesAndParameter(userRepo), controllers.ChangePassword(userRepo))
 	r.DELETE("/user/:id", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.DeleteUser(userRepo))
 
 	r.POST("/register", controllers.RegisterUser(userRepo))
@@ -67,17 +67,16 @@ func main() {
 	// hold CRUD controller
 	r.GET("/hold/user/:id", controllers.GetHoldsByUserID(holdRepo))
 	r.GET("/hold/book/:id", controllers.GetHoldsByBookID(holdRepo))
-	r.GET("/hold/:id", controllers.GetHoldByID(holdRepo))
-	r.POST("/hold", controllers.CreateHold(holdRepo))
-	r.PUT("/hold/:id", controllers.UpdateHold(holdRepo))
-	r.DELETE("/hold/:id", controllers.DeleteHold(holdRepo))
+	r.POST("/hold", controllers.PlaceHold(holdRepo, loanRepo, bookRepo, userRepo))
+	r.DELETE("/cancel-hold/:id", controllers.CancelHold(holdRepo, loanRepo))
+	r.DELETE("/resolve-hold/:id", controllers.ResolveHold(holdRepo, loanRepo))
 
 	// loan CRUD controller
-	r.GET("/loan", controllers.GetAllLoans(loanRepo))
-	r.GET("/loan/:id", controllers.GetLoanByID(loanRepo))
-	r.POST("/loan", controllers.CreateLoan(loanRepo))
+	r.GET("/loan/book/:id", controllers.GetLoansByBookID(loanRepo))
+	r.GET("/loan/user/:id", controllers.GetLoansByUserID(loanRepo))
+	r.POST("/loan", controllers.CreateLoan(loanRepo, bookRepo))
 	r.PUT("/loan/:id", controllers.UpdateLoan(loanRepo))
-	r.DELETE("/loan/:id", controllers.DeleteLoan(loanRepo))
+	r.DELETE("/loan/:id", controllers.ReturnTheBook(loanRepo))
 
 	// notification CRUD controller
 	r.GET("/notification", controllers.GetAllNotifications(notificationRepo))

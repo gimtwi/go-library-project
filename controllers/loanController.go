@@ -8,18 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetAllLoans(repo types.LoanRepository) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		loans, err := repo.GetAll()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusOK, loans)
-	}
-}
-
-func GetLoanByID(repo types.LoanRepository) gin.HandlerFunc {
+func GetLoansByUserID(repo types.LoanRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -28,16 +17,34 @@ func GetLoanByID(repo types.LoanRepository) gin.HandlerFunc {
 			return
 		}
 
-		loan, err := repo.GetByID(uint(id))
+		loans, err := repo.GetByUserID(uint(id))
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "loan not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "couldn't fetch loans"})
 			return
 		}
-		c.JSON(http.StatusOK, loan)
+		c.JSON(http.StatusOK, loans)
 	}
 }
 
-func CreateLoan(repo types.LoanRepository) gin.HandlerFunc {
+func GetLoansByBookID(repo types.LoanRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idStr := c.Param("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid loan id"})
+			return
+		}
+
+		loans, err := repo.GetByBookID(uint(id))
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "couldn't fetch loans"})
+			return
+		}
+		c.JSON(http.StatusOK, loans)
+	}
+}
+
+func CreateLoan(loanRepo types.LoanRepository, bookRepo types.BookRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var loan types.Loan
 		if err := c.ShouldBindJSON(&loan); err != nil {
@@ -45,7 +52,26 @@ func CreateLoan(repo types.LoanRepository) gin.HandlerFunc {
 			return
 		}
 
-		if err := repo.Create(&loan); err != nil {
+		book, err := bookRepo.GetByID(loan.BookID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "book not found"})
+			return
+		}
+
+		loans, err := loanRepo.GetByBookID(loan.BookID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "loans not found"})
+			return
+		}
+
+		if uint(len(loans)) >= book.Quantity {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "book is not available"})
+			return
+		}
+
+		//TODO the rest of the logic
+
+		if err := loanRepo.Create(&loan); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -77,7 +103,7 @@ func UpdateLoan(repo types.LoanRepository) gin.HandlerFunc {
 	}
 }
 
-func DeleteLoan(repo types.LoanRepository) gin.HandlerFunc {
+func ReturnTheBook(repo types.LoanRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)

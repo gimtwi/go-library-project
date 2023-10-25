@@ -29,12 +29,6 @@ func CheckAuthorsAndGenres(book *types.Book, authorRepo types.AuthorRepository, 
 	book.Authors = associatedAuthors
 	book.Genres = associatedGenres
 
-	if book.Quantity >= 1 {
-		book.IsAvailable = true
-	} else {
-		book.IsAvailable = false
-	}
-
 	return nil
 }
 

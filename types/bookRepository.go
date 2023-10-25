@@ -24,8 +24,7 @@ type Book struct {
 	Description string   `json:"description"`
 	Authors     []Author `gorm:"many2many:book_authors" json:"authors" binding:"required"`
 	Genres      []Genre  `gorm:"many2many:book_genres" json:"genres" binding:"required"`
-	Quantity    uint64   `json:"quantity"`
-	IsAvailable bool     `json:"isAvailable"`
+	Quantity    uint     `json:"quantity"`
 }
 
 type BookRepository interface {

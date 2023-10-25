@@ -1,25 +1,34 @@
 package types
 
 import (
+	"sort"
 	"time"
 
 	"gorm.io/gorm"
 )
 
 type Hold struct {
-	ID        uint      `gorm:"primarykey" json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID     uint `gorm:"primarykey" json:"id"`
+	BookID uint `json:"bookID" binding:"required"`
+	UserID uint `json:"userID"`
 
-	BookID    uint `json:"bookID" binding:"required"`
-	UserID    uint `json:"userID" binding:"required"`
-	Fulfilled bool `json:"fulfilled"`
+	PlacedDate time.Time `json:"placedDate"`
+
+	HoldsCount        uint `json:"holdsCount"`       // * people waiting in total
+	HoldListPosition  uint `json:"holdListPosition"` // * place in line
+	OwnedCopies       uint `json:"ownedCopies"`      // * copies in use
+	HoldsRatio        int  `json:"holdsRatio"`       // * people waiting per copy (holdsCount/ownedCopies)
+	EstimatedWaitDays uint `json:"estimatedWaitDays"`
+	AvailableCopies   uint `json:"availableCopies"`
+	IsAvailable       bool `json:"isAvailable"`
+
+	ExpiryDate time.Time `json:"expiryDate"`
 }
 
 type HoldRepository interface {
 	Create(hold *Hold) error
-	GetHoldsByUserID(userID uint) ([]Hold, error)
-	GetHoldsByBookID(bookID uint) ([]Hold, error)
+	GetByUserID(userID uint) ([]Hold, error)
+	GetByBookID(bookID uint) ([]Hold, error)
 	GetByID(id uint) (*Hold, error)
 	Update(hold *Hold) error
 	Delete(id uint) error
@@ -37,19 +46,31 @@ func (h *HoldRepositoryImpl) Create(hold *Hold) error {
 	return h.db.Create(hold).Error
 }
 
-func (h *HoldRepositoryImpl) GetHoldsByUserID(userID uint) ([]Hold, error) {
+func (h *HoldRepositoryImpl) GetByUserID(userID uint) ([]Hold, error) {
 	var holds []Hold
 	if err := h.db.Find(&holds).Where("userID = ?", userID).Error; err != nil {
 		return nil, err
 	}
+
+	// sort the holds by EstimatedWaitDays (lowest number comes first)
+	sort.Slice(holds, func(i, j int) bool {
+		return holds[i].EstimatedWaitDays < holds[j].EstimatedWaitDays
+	})
+
 	return holds, nil
 }
 
-func (h *HoldRepositoryImpl) GetHoldsByBookID(bookID uint) ([]Hold, error) {
+func (h *HoldRepositoryImpl) GetByBookID(bookID uint) ([]Hold, error) {
 	var holds []Hold
 	if err := h.db.Find(&holds).Where("bookID = ?", bookID).Error; err != nil {
 		return nil, err
 	}
+
+	// sort the holds by PlacedDate (earliest date first)
+	sort.Slice(holds, func(i, j int) bool {
+		return holds[i].PlacedDate.Before(holds[j].PlacedDate)
+	})
+
 	return holds, nil
 }
 

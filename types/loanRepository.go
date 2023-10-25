@@ -7,18 +7,19 @@ import (
 )
 
 type Loan struct {
-	ID        uint      `gorm:"primarykey" json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID     uint `gorm:"primarykey" json:"id"`
+	BookID uint `json:"bookID" binding:"required"`
+	UserID uint `json:"userID" binding:"required"`
 
-	BookID  uint      `json:"bookID" binding:"required"`
-	UserID  uint      `json:"userID" binding:"required"`
-	DueDate time.Time `json:"dueDate"`
+	CheckoutDate time.Time `json:"checkoutDate"` // * date of loan creation
+	ExpireDate   time.Time `json:"expireDate"`   // * date of loan expiration
+	RenewableOn  time.Time `json:"renewableOn"`  // ? 3 days before expiration date send notification
 }
 
 type LoanRepository interface {
 	Create(loan *Loan) error
-	GetAll() ([]Loan, error)
+	GetByUserID(bookID uint) ([]Loan, error)
+	GetByBookID(bookID uint) ([]Loan, error)
 	GetByID(id uint) (*Loan, error)
 	Update(loan *Loan) error
 	Delete(id uint) error
@@ -36,9 +37,17 @@ func (l *LoanRepositoryImpl) Create(loan *Loan) error {
 	return l.db.Create(loan).Error
 }
 
-func (l *LoanRepositoryImpl) GetAll() ([]Loan, error) {
+func (l *LoanRepositoryImpl) GetByUserID(userID uint) ([]Loan, error) {
 	var loans []Loan
-	if err := l.db.Find(&loans).Error; err != nil {
+	if err := l.db.Find(&loans).Where("userID = ?", userID).Error; err != nil {
+		return nil, err
+	}
+	return loans, nil
+}
+
+func (l *LoanRepositoryImpl) GetByBookID(bookID uint) ([]Loan, error) {
+	var loans []Loan
+	if err := l.db.Find(&loans).Where("bookID = ?", bookID).Error; err != nil {
 		return nil, err
 	}
 	return loans, nil
