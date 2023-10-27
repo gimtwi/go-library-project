@@ -65,11 +65,11 @@ func main() {
 	r.DELETE("/genre/:id", controllers.DeleteGenre(genreRepo))
 
 	// hold CRUD controller
-	r.GET("/hold/user/:id", controllers.GetHoldsByUserID(holdRepo))
+	r.GET("/hold/user/:id", controllers.GetHoldsByUserID(holdRepo, loanRepo, bookRepo))
 	r.GET("/hold/book/:id", controllers.GetHoldsByBookID(holdRepo))
 	r.POST("/hold", controllers.PlaceHold(holdRepo, loanRepo, bookRepo, userRepo))
-	r.DELETE("/cancel-hold/:id", controllers.CancelHold(holdRepo, loanRepo))
-	r.DELETE("/resolve-hold/:id", controllers.ResolveHold(holdRepo, loanRepo))
+	r.DELETE("/cancel-hold/:id", controllers.CancelHold(holdRepo, loanRepo, bookRepo))
+	r.DELETE("/resolve-hold/:id", controllers.ResolveHold(holdRepo, loanRepo, bookRepo))
 
 	// loan CRUD controller
 	r.GET("/loan/book/:id", controllers.GetLoansByBookID(loanRepo))

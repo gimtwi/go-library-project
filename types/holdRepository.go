@@ -14,15 +14,29 @@ type Hold struct {
 
 	PlacedDate time.Time `json:"placedDate"`
 
-	HoldsCount        uint `json:"holdsCount"`       // * people waiting in total
-	HoldListPosition  uint `json:"holdListPosition"` // * place in line
-	OwnedCopies       uint `json:"ownedCopies"`      // * copies in use
-	HoldsRatio        int  `json:"holdsRatio"`       // * people waiting per copy (holdsCount/ownedCopies)
-	EstimatedWaitDays uint `json:"estimatedWaitDays"`
-	AvailableCopies   uint `json:"availableCopies"`
-	IsAvailable       bool `json:"isAvailable"`
+	IsAvailable          bool      `json:"isAvailable"`
+	ExpiryDate           time.Time `json:"expiryDate"`
+	InLinePosition       uint      `json:"inLinePosition"`       // * place in line
+	EstimatedWeeksToWait uint      `json:"estimatedWeeksToWait"` // * approximate waiting days
 
-	ExpiryDate time.Time `json:"expiryDate"`
+}
+
+type HoldsInfo struct {
+	ID     uint `gorm:"primarykey" json:"id"`
+	BookID uint `json:"bookID" binding:"required"`
+	UserID uint `json:"userID"`
+
+	PlacedDate time.Time `json:"placedDate"`
+
+	IsAvailable          bool      `json:"isAvailable"`
+	ExpiryDate           time.Time `json:"expiryDate"`
+	InLinePosition       uint      `json:"inLinePosition"`       // * place in line
+	EstimatedWeeksToWait uint      `json:"estimatedWeeksToWait"` // * approximate waiting days
+
+	HoldsCount      uint `json:"holdsCount"`  // * people waiting in total
+	OwnedCopies     uint `json:"ownedCopies"` // * copies in use
+	HoldsRatio      int  `json:"holdsRatio"`  // * people waiting per copy (holdsCount/ownedCopies)
+	AvailableCopies uint `json:"availableCopies"`
 }
 
 type HoldRepository interface {
@@ -54,7 +68,7 @@ func (h *HoldRepositoryImpl) GetByUserID(userID uint) ([]Hold, error) {
 
 	// sort the holds by EstimatedWaitDays (lowest number comes first)
 	sort.Slice(holds, func(i, j int) bool {
-		return holds[i].EstimatedWaitDays < holds[j].EstimatedWaitDays
+		return holds[i].EstimatedWeeksToWait < holds[j].EstimatedWeeksToWait
 	})
 
 	return holds, nil

@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetHoldsByUserID(repo types.HoldRepository) gin.HandlerFunc {
+func GetHoldsByUserID(holdRepo types.HoldRepository, loanRepo types.LoanRepository, bookRepo types.BookRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -20,12 +20,50 @@ func GetHoldsByUserID(repo types.HoldRepository) gin.HandlerFunc {
 			return
 		}
 
-		holds, err := repo.GetByUserID(uint(id))
+		holds, err := holdRepo.GetByUserID(uint(id))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't fetch holds"})
 			return
 		}
-		c.JSON(http.StatusOK, holds)
+
+		var holdsInfo []types.HoldsInfo
+
+		for _, h := range holds {
+
+			loans, err := loanRepo.GetByBookID(h.BookID)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+			book, err := bookRepo.GetByID(h.BookID)
+			if err != nil {
+				c.JSON(http.StatusNotFound, gin.H{"error": "book not found"})
+				return
+			}
+
+			holdsCount := uint(len(holds))
+			ownedCopies := uint(len(loans))
+			holdsRatio := help.CalculateHoldsRatio(holdsCount, ownedCopies)
+
+			holdsInfoItem := types.HoldsInfo{
+				ID:                   h.ID,
+				BookID:               h.BookID,
+				UserID:               h.UserID,
+				PlacedDate:           h.PlacedDate,
+				IsAvailable:          h.IsAvailable,
+				ExpiryDate:           h.ExpiryDate,
+				InLinePosition:       h.InLinePosition,
+				EstimatedWeeksToWait: h.EstimatedWeeksToWait,
+				HoldsCount:           holdsCount,
+				OwnedCopies:          ownedCopies,
+				HoldsRatio:           holdsRatio,
+				AvailableCopies:      book.Quantity - uint(len(loans)),
+			}
+
+			holdsInfo = append(holdsInfo, holdsInfoItem)
+		}
+
+		c.JSON(http.StatusOK, holdsInfo)
 	}
 }
 
@@ -74,56 +112,23 @@ func PlaceHold(holdRepo types.HoldRepository, loanRepo types.LoanRepository, boo
 			return
 		}
 
-		loans, err := loanRepo.GetByBookID(book.ID)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "couldn't fetch the loans for the book"})
-			return
-		}
-
 		hold.PlacedDate = time.Now()
 
-		if len(holds) != 0 {
-
-			if err := help.AssignAndUpdateHoldsCount(&hold, holds, holdRepo); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-
-			hold.HoldListPosition = hold.HoldsCount + 1
-
-			holdsRatio := help.CalculateHoldsRatio(hold.OwnedCopies, hold.HoldsCount)
-
-			if err := help.UpdateHoldsRatio(holds, holdsRatio, holdRepo); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-
-			if err := help.CalculateEstimatedWaitDays(&hold); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-
-		} else {
-			hold.HoldsCount = 1
-			hold.HoldListPosition = 1
-			hold.HoldsRatio = 0
-			hold.EstimatedWaitDays = 0
-		}
-
-		if len(loans) != 0 {
-
-			if err := help.HandleOwnedCopies(&hold, loans); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-
-		} else {
-			hold.OwnedCopies = 0
-		}
-
-		if err := help.CalculateAvailableCopies(book, &hold, loans); err != nil {
+		if err := help.CheckAvailability(&hold, book, holdRepo, loanRepo); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+
+		if hold.IsAvailable {
+			hold.InLinePosition = 0
+			hold.ExpiryDate = time.Now().Add(3 * 24 * time.Hour) // if book is available for loner than 3 days the hold will expire automatically
+			hold.EstimatedWeeksToWait = 0
+		} else {
+			hold.InLinePosition = uint(len(holds) + 1)
+			if err := help.CalculateDaysToWait(&hold, book); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 		}
 
 		if err := holdRepo.Create(&hold); err != nil {
@@ -134,7 +139,7 @@ func PlaceHold(holdRepo types.HoldRepository, loanRepo types.LoanRepository, boo
 	}
 }
 
-func CancelHold(holdRepo types.HoldRepository, loanRepo types.LoanRepository) gin.HandlerFunc {
+func CancelHold(holdRepo types.HoldRepository, loanRepo types.LoanRepository, bookRepo types.BookRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -165,25 +170,15 @@ func CancelHold(holdRepo types.HoldRepository, loanRepo types.LoanRepository) gi
 			return
 		}
 
-		holds, err := holdRepo.GetByBookID(uint(id))
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "couldn't fetch the holds for the book"})
+		if err := help.RearrangeHolds(hold.BookID, holdRepo, loanRepo, bookRepo); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
-		}
-
-		if len(holds) != 0 {
-
-			if err := help.UpdateHoldsAfterDelete(uint(id), holds, holdRepo, loanRepo); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-
 		}
 
 	}
 }
 
-func ResolveHold(holdRepo types.HoldRepository, loanRepo types.LoanRepository) gin.HandlerFunc {
+func ResolveHold(holdRepo types.HoldRepository, loanRepo types.LoanRepository, bookRepo types.BookRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -195,11 +190,6 @@ func ResolveHold(holdRepo types.HoldRepository, loanRepo types.LoanRepository) g
 		hold, err := holdRepo.GetByID(uint(id))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "hold doesn't exist"})
-			return
-		}
-
-		if hold.HoldListPosition != 1 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "hold is not available"})
 			return
 		}
 
@@ -226,20 +216,9 @@ func ResolveHold(holdRepo types.HoldRepository, loanRepo types.LoanRepository) g
 			return
 		}
 
-		holds, err := holdRepo.GetByBookID(uint(id))
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "couldn't fetch the holds for the book"})
+		if err := help.RearrangeHolds(hold.BookID, holdRepo, loanRepo, bookRepo); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-
-		if len(holds) != 0 {
-
-			if err := help.UpdateHoldsAfterDelete(uint(id), holds, holdRepo, loanRepo); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-
-		}
-		c.JSON(http.StatusOK, gin.H{"message": "hold has been resolved and new loan was created"})
 	}
 }
