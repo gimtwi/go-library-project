@@ -47,7 +47,7 @@ func main() {
 	r.GET("/book/author/:id", controllers.GetBooksByAuthorID(bookRepo))
 	r.GET("/book/genre/:id", controllers.GetBooksByGenreID(bookRepo))
 	r.POST("/book", controllers.CreateBook(bookRepo, authorRepo, genreRepo))
-	r.PUT("/book/:id", controllers.UpdateBook(bookRepo, authorRepo, genreRepo))
+	r.PUT("/book/:id", controllers.UpdateBook(bookRepo, authorRepo, genreRepo, holdRepo, loanRepo))
 	r.DELETE("/book/:id", controllers.DeleteBook(bookRepo))
 
 	// author CRUD controller
@@ -67,22 +67,19 @@ func main() {
 	// hold CRUD controller
 	r.GET("/hold/user/:id", controllers.GetHoldsByUserID(holdRepo, loanRepo, bookRepo))
 	r.GET("/hold/book/:id", controllers.GetHoldsByBookID(holdRepo))
-	r.POST("/hold", controllers.PlaceHold(holdRepo, loanRepo, bookRepo, userRepo))
-	r.DELETE("/cancel-hold/:id", controllers.CancelHold(holdRepo, loanRepo, bookRepo))
-	r.DELETE("/resolve-hold/:id", controllers.ResolveHold(holdRepo, loanRepo, bookRepo))
+	r.POST("/hold", controllers.PlaceHold(holdRepo, loanRepo, bookRepo))
+	r.DELETE("/cancel-hold/:id", controllers.CancelHold(holdRepo, loanRepo, bookRepo, userRepo))
+	r.DELETE("/resolve-hold/:id", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.ResolveHold(holdRepo, loanRepo, bookRepo))
 
 	// loan CRUD controller
 	r.GET("/loan/book/:id", controllers.GetLoansByBookID(loanRepo))
 	r.GET("/loan/user/:id", controllers.GetLoansByUserID(loanRepo))
-	r.POST("/loan", controllers.CreateLoan(loanRepo, bookRepo))
-	r.PUT("/loan/:id", controllers.UpdateLoan(loanRepo))
-	r.DELETE("/loan/:id", controllers.ReturnTheBook(loanRepo))
+	r.POST("/loan", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.CreateLoan(loanRepo, bookRepo, holdRepo))
+	r.DELETE("/loan/:id", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.ReturnTheBook(loanRepo, holdRepo, bookRepo))
 
 	// notification CRUD controller
-	r.GET("/notification", controllers.GetAllNotifications(notificationRepo))
-	r.GET("/notification/:id", controllers.GetNotificationByID(notificationRepo))
-	r.POST("/notification", controllers.CreateNotification(notificationRepo))
-	r.PUT("/notification/:id", controllers.UpdateNotification(notificationRepo))
+	r.GET("/notification/:id", middleware.CompareCookiesAndParameter(userRepo), controllers.GetNotificationByUserID(notificationRepo))
+	r.POST("/notification", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.CreateNotification(notificationRepo))
 	r.DELETE("/notification/:id", controllers.DeleteNotification(notificationRepo))
 
 	r.Run()

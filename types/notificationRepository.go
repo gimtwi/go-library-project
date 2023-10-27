@@ -16,9 +16,8 @@ type Notification struct {
 
 type NotificationRepository interface {
 	Create(notification *Notification) error
-	GetAll() ([]Notification, error)
+	GetByUserID(userID uint) ([]Notification, error)
 	GetByID(id uint) (*Notification, error)
-	Update(notification *Notification) error
 	Delete(id uint) error
 }
 
@@ -34,9 +33,9 @@ func (n *NotificationRepositoryImpl) Create(notification *Notification) error {
 	return n.db.Create(notification).Error
 }
 
-func (n *NotificationRepositoryImpl) GetAll() ([]Notification, error) {
+func (n *NotificationRepositoryImpl) GetByUserID(userID uint) ([]Notification, error) {
 	var notifications []Notification
-	if err := n.db.Find(&notifications).Error; err != nil {
+	if err := n.db.Find(&notifications).Where("userID = ?", userID).Error; err != nil {
 		return nil, err
 	}
 	return notifications, nil
@@ -48,10 +47,6 @@ func (n *NotificationRepositoryImpl) GetByID(id uint) (*Notification, error) {
 		return nil, err
 	}
 	return &notification, nil
-}
-
-func (n *NotificationRepositoryImpl) Update(notification *Notification) error {
-	return n.db.Save(notification).Error
 }
 
 func (n *NotificationRepositoryImpl) Delete(id uint) error {

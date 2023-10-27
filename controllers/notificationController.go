@@ -8,18 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetAllNotifications(repo types.NotificationRepository) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		notifications, err := repo.GetAll()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusOK, notifications)
-	}
-}
-
-func GetNotificationByID(repo types.NotificationRepository) gin.HandlerFunc {
+func GetNotificationByUserID(repo types.NotificationRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -28,12 +17,12 @@ func GetNotificationByID(repo types.NotificationRepository) gin.HandlerFunc {
 			return
 		}
 
-		notification, err := repo.GetByID(uint(id))
+		notifications, err := repo.GetByUserID(uint(id))
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "notification not found"})
 			return
 		}
-		c.JSON(http.StatusOK, notification)
+		c.JSON(http.StatusOK, notifications)
 	}
 }
 
@@ -50,30 +39,6 @@ func CreateNotification(repo types.NotificationRepository) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusCreated, notification)
-	}
-}
-
-func UpdateNotification(repo types.NotificationRepository) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		idStr := c.Param("id")
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid notification id"})
-			return
-		}
-
-		var notification types.Notification
-		if err := c.ShouldBindJSON(&notification); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		notification.ID = uint(id)
-
-		if err := repo.Update(&notification); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusOK, notification)
 	}
 }
 

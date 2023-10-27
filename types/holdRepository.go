@@ -21,24 +21,6 @@ type Hold struct {
 
 }
 
-type HoldsInfo struct {
-	ID     uint `gorm:"primarykey" json:"id"`
-	BookID uint `json:"bookID" binding:"required"`
-	UserID uint `json:"userID"`
-
-	PlacedDate time.Time `json:"placedDate"`
-
-	IsAvailable          bool      `json:"isAvailable"`
-	ExpiryDate           time.Time `json:"expiryDate"`
-	InLinePosition       uint      `json:"inLinePosition"`       // * place in line
-	EstimatedWeeksToWait uint      `json:"estimatedWeeksToWait"` // * approximate waiting days
-
-	HoldsCount      uint `json:"holdsCount"`  // * people waiting in total
-	OwnedCopies     uint `json:"ownedCopies"` // * copies in use
-	HoldsRatio      int  `json:"holdsRatio"`  // * people waiting per copy (holdsCount/ownedCopies)
-	AvailableCopies uint `json:"availableCopies"`
-}
-
 type HoldRepository interface {
 	Create(hold *Hold) error
 	GetByUserID(userID uint) ([]Hold, error)

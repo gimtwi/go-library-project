@@ -1,12 +1,13 @@
 package help
 
 import (
+	"math"
 	"time"
 
 	"github.com/gimtwi/go-library-project/types"
 )
 
-func CheckAvailability(hold *types.Hold, book *types.Book, holdRepo types.HoldRepository, loanRepo types.LoanRepository) error {
+func CheckInitialAvailability(hold *types.Hold, book *types.Book, holdRepo types.HoldRepository, loanRepo types.LoanRepository) error {
 	holds, err := holdRepo.GetByBookID(book.ID)
 	if err != nil {
 		return err
@@ -26,13 +27,55 @@ func CheckAvailability(hold *types.Hold, book *types.Book, holdRepo types.HoldRe
 	return nil
 }
 
-func CalculateDaysToWait(hold *types.Hold, book *types.Book) error {
-	// 14 days wait per user per book in line
-	fullCycles := (hold.InLinePosition - 1) / book.Quantity
+func ReCheckInitialAvailability(hold *types.Hold, book *types.Book, loanRepo types.LoanRepository) error {
 
-	waitingDays := fullCycles * 14
+	loans, err := loanRepo.GetByBookID(book.ID)
+	if err != nil {
+		return err
+	}
+
+	availableBooks := book.Quantity - uint(len(loans))
+
+	if availableBooks >= hold.InLinePosition {
+		hold.IsAvailable = true
+	} else {
+		hold.IsAvailable = false
+	}
+
+	return nil
+}
+
+func CalculateDaysToWait(hold *types.Hold, book *types.Book) error {
+	var fullCycles float64 = float64(hold.InLinePosition-1) / float64(book.Quantity)
+	waitingDays := uint(math.Round(fullCycles)) * 14
 
 	hold.EstimatedWeeksToWait = daysToWeeks(waitingDays)
+
+	return nil
+}
+
+func ReCalculateDaysToWait(hold *types.Hold, book *types.Book, loanRepo types.LoanRepository) error {
+	loans, err := loanRepo.GetByBookID(book.ID)
+	if err != nil {
+		return err
+	}
+
+	availableBooks := book.Quantity - uint(len(loans))
+
+	if availableBooks >= hold.InLinePosition {
+		hold.EstimatedWeeksToWait = 0
+	} else {
+		var fullCycles float64 = float64(hold.InLinePosition) / float64(book.Quantity)
+		if uint(fullCycles) == 0 {
+			waitingDays := uint(math.Ceil(fullCycles)) * 14
+			hold.EstimatedWeeksToWait = daysToWeeks(waitingDays)
+		} else {
+			waitingDays := uint(math.Round(fullCycles)) * 14
+			hold.EstimatedWeeksToWait = daysToWeeks(waitingDays)
+		}
+
+	}
+
 	return nil
 }
 
@@ -53,18 +96,17 @@ func RearrangeHolds(bookID uint, holdRepo types.HoldRepository, loanRepo types.L
 	}
 
 	for i, hold := range holds {
-		if err := CheckAvailability(&hold, book, holdRepo, loanRepo); err != nil {
+		hold.InLinePosition = uint(i + 1)
+		if err := ReCheckInitialAvailability(&hold, book, loanRepo); err != nil {
 			return err
 		}
 
 		if hold.IsAvailable {
-			hold.InLinePosition = 0
 			hold.ExpiryDate = time.Now().Add(3 * 24 * time.Hour) // if book is available for loner than 3 days the hold will expire automatically
 			hold.EstimatedWeeksToWait = 0
 		} else {
-			hold.InLinePosition = uint(i + 1)
 
-			if err := CalculateDaysToWait(&hold, book); err != nil {
+			if err := ReCalculateDaysToWait(&hold, book, loanRepo); err != nil {
 				return err
 			}
 		}
@@ -74,15 +116,4 @@ func RearrangeHolds(bookID uint, holdRepo types.HoldRepository, loanRepo types.L
 		}
 	}
 	return nil
-}
-
-func CalculateHoldsRatio(ownedCopies, holdsCount uint) int {
-	if ownedCopies == 0 {
-		return 0
-	} else if ownedCopies < holdsCount {
-		holdsRatio := int(holdsCount / ownedCopies)
-		return holdsRatio
-	} else {
-		return 0
-	}
 }

@@ -105,7 +105,7 @@ func CreateBook(bookRepo types.BookRepository, authorRepo types.AuthorRepository
 	}
 }
 
-func UpdateBook(bookRepo types.BookRepository, authorRepo types.AuthorRepository, genreRepo types.GenreRepository) gin.HandlerFunc {
+func UpdateBook(bookRepo types.BookRepository, authorRepo types.AuthorRepository, genreRepo types.GenreRepository, holdRepo types.HoldRepository, loanRepo types.LoanRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -121,7 +121,7 @@ func UpdateBook(bookRepo types.BookRepository, authorRepo types.AuthorRepository
 		}
 		book.ID = uint(id)
 
-		_, err = bookRepo.GetByID(uint(id))
+		b, err := bookRepo.GetByID(uint(id))
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "book not found"})
 			return
@@ -137,6 +137,13 @@ func UpdateBook(bookRepo types.BookRepository, authorRepo types.AuthorRepository
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
+		}
+
+		if book.Quantity != b.Quantity {
+			if err := help.RearrangeHolds(book.ID, holdRepo, loanRepo, bookRepo); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
 		}
 
 		if err := bookRepo.Update(&book); err != nil {
