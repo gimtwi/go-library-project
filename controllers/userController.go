@@ -10,9 +10,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetAllUsers(repo types.UserRepository) gin.HandlerFunc {
+func GetAllUsers(ur types.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		users, err := repo.GetAll()
+		users, err := ur.GetAll()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -27,7 +27,7 @@ func GetAllUsers(repo types.UserRepository) gin.HandlerFunc {
 	}
 }
 
-func GetUserByID(repo types.UserRepository) gin.HandlerFunc {
+func GetUserByID(ur types.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -36,7 +36,7 @@ func GetUserByID(repo types.UserRepository) gin.HandlerFunc {
 			return
 		}
 
-		user, err := repo.GetByID(uint(id))
+		user, err := ur.GetByID(uint(id))
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 			return
@@ -46,7 +46,7 @@ func GetUserByID(repo types.UserRepository) gin.HandlerFunc {
 	}
 }
 
-func RegisterUser(repo types.UserRepository) gin.HandlerFunc {
+func RegisterUser(ur types.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var user types.User
 		if err := c.ShouldBindJSON(&user); err != nil {
@@ -54,12 +54,12 @@ func RegisterUser(repo types.UserRepository) gin.HandlerFunc {
 			return
 		}
 
-		if _, err := repo.GetByUniqueField("username", user.Username); err == nil {
+		if _, err := ur.GetByUniqueField("username", user.Username); err == nil {
 			c.JSON(http.StatusConflict, gin.H{"error": "invalid username"})
 			return
 		}
 
-		if _, err := repo.GetByUniqueField("email", user.Email); err == nil {
+		if _, err := ur.GetByUniqueField("email", user.Email); err == nil {
 			c.JSON(http.StatusConflict, gin.H{"error": "invalid email"})
 			return
 		}
@@ -79,7 +79,7 @@ func RegisterUser(repo types.UserRepository) gin.HandlerFunc {
 		user.Role = types.Member
 		user.Password = hash
 
-		if repo.Create(&user); err != nil {
+		if ur.Create(&user); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -88,7 +88,7 @@ func RegisterUser(repo types.UserRepository) gin.HandlerFunc {
 	}
 }
 
-func Login(repo types.UserRepository) gin.HandlerFunc {
+func Login(ur types.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req types.LoginRequest
 
@@ -97,7 +97,7 @@ func Login(repo types.UserRepository) gin.HandlerFunc {
 			return
 		}
 
-		user, err := repo.GetByUniqueField("username", req.Username)
+		user, err := ur.GetByUniqueField("username", req.Username)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid username or password"})
 			return
@@ -124,14 +124,14 @@ func Login(repo types.UserRepository) gin.HandlerFunc {
 	}
 }
 
-func Logout(repo types.UserRepository) gin.HandlerFunc {
+func Logout(ur types.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.SetCookie(os.Getenv("COOKIE_NAME"), "", -1, "/", "", false, true)
 		c.Redirect(http.StatusSeeOther, "/login")
 	}
 }
 
-func AssignRole(repo types.UserRepository, role types.UserRole) gin.HandlerFunc {
+func AssignRole(ur types.UserRepository, role types.UserRole) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -140,7 +140,7 @@ func AssignRole(repo types.UserRepository, role types.UserRole) gin.HandlerFunc 
 			return
 		}
 
-		user, err := repo.GetByID(uint(id))
+		user, err := ur.GetByID(uint(id))
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 			return
@@ -148,7 +148,7 @@ func AssignRole(repo types.UserRepository, role types.UserRole) gin.HandlerFunc 
 
 		user.Role = role
 
-		if err := repo.Update(user); err != nil {
+		if err := ur.Update(user); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -156,7 +156,7 @@ func AssignRole(repo types.UserRepository, role types.UserRole) gin.HandlerFunc 
 	}
 }
 
-func ChangePassword(repo types.UserRepository) gin.HandlerFunc {
+func ChangePassword(ur types.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req types.ChangePasswordRequest
 
@@ -172,7 +172,7 @@ func ChangePassword(repo types.UserRepository) gin.HandlerFunc {
 			return
 		}
 
-		user, err := repo.GetByID(uint(id))
+		user, err := ur.GetByID(uint(id))
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 			return
@@ -194,18 +194,18 @@ func ChangePassword(repo types.UserRepository) gin.HandlerFunc {
 
 		user.Password = hash
 
-		if err := repo.Update(user); err != nil {
+		if err := ur.Update(user); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		Logout(repo)
+		Logout(ur)
 
 		c.JSON(http.StatusOK, gin.H{"message": "password was changed successfully!"})
 
 	}
 }
 
-func DeleteUser(repo types.UserRepository) gin.HandlerFunc {
+func DeleteUser(ur types.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -214,7 +214,7 @@ func DeleteUser(repo types.UserRepository) gin.HandlerFunc {
 			return
 		}
 
-		if err := repo.Delete(uint(id)); err != nil {
+		if err := ur.Delete(uint(id)); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

@@ -9,7 +9,7 @@ import (
 
 type Hold struct {
 	ID     uint `gorm:"primarykey" json:"id"`
-	BookID uint `json:"bookID" binding:"required"`
+	ItemID uint `json:"itemID" binding:"required"`
 	UserID uint `json:"userID"`
 
 	PlacedDate time.Time `json:"placedDate"`
@@ -24,7 +24,7 @@ type Hold struct {
 type HoldRepository interface {
 	Create(hold *Hold) error
 	GetByUserID(userID uint) ([]Hold, error)
-	GetByBookID(bookID uint) ([]Hold, error)
+	GetByItemID(itemID uint) ([]Hold, error)
 	GetByID(id uint) (*Hold, error)
 	Update(hold *Hold) error
 	Delete(id uint) error
@@ -56,9 +56,9 @@ func (h *HoldRepositoryImpl) GetByUserID(userID uint) ([]Hold, error) {
 	return holds, nil
 }
 
-func (h *HoldRepositoryImpl) GetByBookID(bookID uint) ([]Hold, error) {
+func (h *HoldRepositoryImpl) GetByItemID(itemID uint) ([]Hold, error) {
 	var holds []Hold
-	if err := h.db.Find(&holds).Where("bookID = ?", bookID).Error; err != nil {
+	if err := h.db.Find(&holds).Where("itemID = ?", itemID).Error; err != nil {
 		return nil, err
 	}
 

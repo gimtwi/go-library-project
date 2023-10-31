@@ -20,12 +20,12 @@ func main() {
 	r := gin.Default()
 
 	userRepo := types.NewUserRepository(utils.DB)
-	bookRepo := types.NewBookRepository(utils.DB)
+	itemRepo := types.NewItemRepository(utils.DB)
 	authorRepo := types.NewAuthorRepository(utils.DB)
 	genreRepo := types.NewGenreRepository(utils.DB)
+	kindRepo := types.NewKindRepository(utils.DB)
 	holdRepo := types.NewHoldRepository(utils.DB)
 	loanRepo := types.NewLoanRepository(utils.DB)
-	notificationRepo := types.NewNotificationRepository(utils.DB)
 
 	// user CRUD controller
 	r.GET("/user", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.GetAllUsers(userRepo))
@@ -41,46 +41,49 @@ func main() {
 
 	// TODO add middleware to each route
 
-	// book CRUD controller
-	r.GET("/book", controllers.GetOrderedFilteredBooksByTitle(bookRepo))
-	r.GET("/book/:id", controllers.GetBookByID(bookRepo))
-	r.GET("/book/author/:id", controllers.GetBooksByAuthorID(bookRepo))
-	r.GET("/book/genre/:id", controllers.GetBooksByGenreID(bookRepo))
-	r.POST("/book", controllers.CreateBook(bookRepo, authorRepo, genreRepo))
-	r.PUT("/book/:id", controllers.UpdateBook(bookRepo, authorRepo, genreRepo, holdRepo, loanRepo))
-	r.DELETE("/book/:id", controllers.DeleteBook(bookRepo))
+	// item CRUD controller
+	r.GET("/item", controllers.GetOrderedFilteredItemsByTitle(itemRepo))
+	r.GET("/item/:id", controllers.GetItemByID(itemRepo))
+	r.GET("/item/author/:id", controllers.GetItemsByAuthorID(itemRepo))
+	r.GET("/item/genre/:id", controllers.GetItemsByGenreID(itemRepo))
+	r.GET("/item/kind/:id", controllers.GetItemsByKindID(itemRepo))
+	r.POST("/item", controllers.CreateItem(itemRepo, authorRepo, genreRepo, kindRepo))
+	r.PUT("/item/:id", controllers.UpdateItem(itemRepo, authorRepo, genreRepo, holdRepo, loanRepo, kindRepo))
+	r.DELETE("/item/:id", controllers.DeleteItem(itemRepo))
 
 	// author CRUD controller
 	r.GET("/author", controllers.GetOrderedFilteredAuthorsByName(authorRepo))
 	r.GET("/author/:id", controllers.GetAuthorByID(authorRepo))
 	r.POST("/author", controllers.CreateAuthor(authorRepo))
-	r.PUT("/author/:id", controllers.UpdateAuthor(authorRepo, bookRepo))
+	r.PUT("/author/:id", controllers.UpdateAuthor(authorRepo, itemRepo))
 	r.DELETE("/author/:id", controllers.DeleteAuthor(authorRepo))
 
 	// genre CRUD controller
 	r.GET("/genre", controllers.GetOrderedFilteredGenresByName(genreRepo))
 	r.GET("/genre/:id", controllers.GetGenreByID(genreRepo))
 	r.POST("/genre", controllers.CreateGenre(genreRepo))
-	r.PUT("/genre/:id", controllers.UpdateGenre(genreRepo, bookRepo))
+	r.PUT("/genre/:id", controllers.UpdateGenre(genreRepo, itemRepo))
 	r.DELETE("/genre/:id", controllers.DeleteGenre(genreRepo))
 
+	// kind CRUD controller
+	r.GET("/kind", controllers.GetOrderedFilteredKindsByName(kindRepo))
+	r.GET("/kind/:id", controllers.GetKindByID(kindRepo))
+	r.POST("/kind", controllers.CreateKind(kindRepo))
+	r.PUT("/kind/:id", controllers.UpdateKind(kindRepo, itemRepo))
+	r.DELETE("/kind/:id", controllers.DeleteKind(kindRepo))
+
 	// hold CRUD controller
-	r.GET("/hold/user/:id", controllers.GetHoldsByUserID(holdRepo, loanRepo, bookRepo))
-	r.GET("/hold/book/:id", controllers.GetHoldsByBookID(holdRepo))
-	r.POST("/hold", controllers.PlaceHold(holdRepo, loanRepo, bookRepo))
-	r.DELETE("/cancel-hold/:id", controllers.CancelHold(holdRepo, loanRepo, bookRepo, userRepo))
-	r.DELETE("/resolve-hold/:id", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.ResolveHold(holdRepo, loanRepo, bookRepo))
+	r.GET("/hold/user/:id", controllers.GetHoldsByUserID(holdRepo, loanRepo, itemRepo))
+	r.GET("/hold/item/:id", controllers.GetHoldsByItemID(holdRepo))
+	r.POST("/hold", controllers.PlaceHold(holdRepo, loanRepo, itemRepo))
+	r.DELETE("/cancel-hold/:id", controllers.CancelHold(holdRepo, loanRepo, itemRepo, userRepo))
+	r.DELETE("/resolve-hold/:id", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.ResolveHold(holdRepo, loanRepo, itemRepo))
 
 	// loan CRUD controller
-	r.GET("/loan/book/:id", controllers.GetLoansByBookID(loanRepo))
+	r.GET("/loan/item/:id", controllers.GetLoansByItemID(loanRepo))
 	r.GET("/loan/user/:id", controllers.GetLoansByUserID(loanRepo))
-	r.POST("/loan", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.CreateLoan(loanRepo, bookRepo, holdRepo))
-	r.DELETE("/loan/:id", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.ReturnTheBook(loanRepo, holdRepo, bookRepo))
-
-	// notification CRUD controller
-	r.GET("/notification/:id", middleware.CompareCookiesAndParameter(userRepo), controllers.GetNotificationByUserID(notificationRepo))
-	r.POST("/notification", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.CreateNotification(notificationRepo))
-	r.DELETE("/notification/:id", controllers.DeleteNotification(notificationRepo))
+	r.POST("/loan", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.CreateLoan(loanRepo, itemRepo, holdRepo))
+	r.DELETE("/loan/:id", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.ReturnTheItem(loanRepo, holdRepo, itemRepo))
 
 	r.Run()
 

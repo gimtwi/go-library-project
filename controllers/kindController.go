@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetOrderedFilteredAuthorsByName(ar types.AuthorRepository) gin.HandlerFunc {
+func GetOrderedFilteredKindsByName(kr types.KindRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var filters types.FilteredRequestBody
 		if err := c.ShouldBindJSON(&filters); err != nil {
@@ -17,106 +17,106 @@ func GetOrderedFilteredAuthorsByName(ar types.AuthorRepository) gin.HandlerFunc 
 			return
 		}
 
-		authors, err := ar.GetAll(string(filters.Order), filters.Filter, filters.Limit)
+		kinds, err := kr.GetAll(string(filters.Order), filters.Filter, filters.Limit)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, authors)
+		c.JSON(http.StatusOK, kinds)
 	}
 }
 
-func GetAuthorByID(ar types.AuthorRepository) gin.HandlerFunc {
+func GetKindByID(kr types.KindRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid author id"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid kind id"})
 			return
 		}
 
-		author, err := ar.GetByID(uint(id))
+		kind, err := kr.GetByID(uint(id))
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "author not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "kind not found"})
 			return
 		}
-		c.JSON(http.StatusOK, author)
+		c.JSON(http.StatusOK, kind)
 	}
 }
 
-func CreateAuthor(ar types.AuthorRepository) gin.HandlerFunc {
+func CreateKind(kr types.KindRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var author types.Author
-		if err := c.ShouldBindJSON(&author); err != nil {
+		var kind types.Kind
+		if err := c.ShouldBindJSON(&kind); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		if err := ar.Create(&author); err != nil {
+		if err := kr.Create(&kind); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusCreated, author)
+		c.JSON(http.StatusCreated, kind)
 	}
 }
 
-func UpdateAuthor(ar types.AuthorRepository, ir types.ItemRepository) gin.HandlerFunc {
+func UpdateKind(kr types.KindRepository, ir types.ItemRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid author id"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid kind id"})
 			return
 		}
 
-		var author types.Author
-		if err := c.ShouldBindJSON(&author); err != nil {
+		var kind types.Kind
+		if err := c.ShouldBindJSON(&kind); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		author.ID = uint(id)
+		kind.ID = uint(id)
 
-		_, err = ar.GetByID(uint(id))
+		_, err = kr.GetByID(uint(id))
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "author not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "kind not found"})
 			return
 		}
 
-		if err := ar.Update(&author); err != nil {
+		if err := kr.Update(&kind); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		associatedItems, err := ir.GetItemsByAuthor(author.ID)
+		associatedItems, err := ir.GetItemsByKind(kind.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		for _, item := range associatedItems {
-			item.Authors = append(item.Authors, author)
+			item.Kinds = append(item.Kinds, kind)
 			if err := ir.Update(&item); err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
 		}
 
-		c.JSON(http.StatusOK, author)
+		c.JSON(http.StatusOK, kind)
 	}
 }
 
-func DeleteAuthor(ar types.AuthorRepository) gin.HandlerFunc {
+func DeleteKind(kr types.KindRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid author id"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid kind id"})
 			return
 		}
 
-		if err := ar.Delete(uint(id)); err != nil {
-			if strings.Contains(err.Error(), "foreign key constraint \"fk_item_authors_author\"") {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "cannot delete author with associated items"})
+		if err := kr.Delete(uint(id)); err != nil {
+			if strings.Contains(err.Error(), "foreign key constraint \"fk_item_kinds_kind\"") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "cannot delete kind with associated items"})
 			} else {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			}

@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetOrderedFilteredGenresByName(repo types.GenreRepository) gin.HandlerFunc {
+func GetOrderedFilteredGenresByName(gr types.GenreRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var filters types.FilteredRequestBody
 		if err := c.ShouldBindJSON(&filters); err != nil {
@@ -17,7 +17,7 @@ func GetOrderedFilteredGenresByName(repo types.GenreRepository) gin.HandlerFunc 
 			return
 		}
 
-		genres, err := repo.GetAll(string(filters.Order), filters.Filter, filters.Limit)
+		genres, err := gr.GetAll(string(filters.Order), filters.Filter, filters.Limit)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -26,7 +26,7 @@ func GetOrderedFilteredGenresByName(repo types.GenreRepository) gin.HandlerFunc 
 	}
 }
 
-func GetGenreByID(repo types.GenreRepository) gin.HandlerFunc {
+func GetGenreByID(gr types.GenreRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -35,7 +35,7 @@ func GetGenreByID(repo types.GenreRepository) gin.HandlerFunc {
 			return
 		}
 
-		genre, err := repo.GetByID(uint(id))
+		genre, err := gr.GetByID(uint(id))
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "genre not found"})
 			return
@@ -44,7 +44,7 @@ func GetGenreByID(repo types.GenreRepository) gin.HandlerFunc {
 	}
 }
 
-func CreateGenre(repo types.GenreRepository) gin.HandlerFunc {
+func CreateGenre(gr types.GenreRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var genre types.Genre
 		if err := c.ShouldBindJSON(&genre); err != nil {
@@ -52,7 +52,7 @@ func CreateGenre(repo types.GenreRepository) gin.HandlerFunc {
 			return
 		}
 
-		if err := repo.Create(&genre); err != nil {
+		if err := gr.Create(&genre); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -60,7 +60,7 @@ func CreateGenre(repo types.GenreRepository) gin.HandlerFunc {
 	}
 }
 
-func UpdateGenre(genreRepo types.GenreRepository, bookRepo types.BookRepository) gin.HandlerFunc {
+func UpdateGenre(gr types.GenreRepository, ir types.ItemRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -76,26 +76,26 @@ func UpdateGenre(genreRepo types.GenreRepository, bookRepo types.BookRepository)
 		}
 		genre.ID = uint(id)
 
-		_, err = genreRepo.GetByID(uint(id))
+		_, err = gr.GetByID(uint(id))
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "genre not found"})
 			return
 		}
 
-		if err := genreRepo.Update(&genre); err != nil {
+		if err := gr.Update(&genre); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		associatedBooks, err := bookRepo.GetBooksByGenre(genre.ID)
+		associatedItems, err := ir.GetItemsByGenre(genre.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		for _, book := range associatedBooks {
-			book.Genres = append(book.Genres, genre)
-			if err := bookRepo.Update(&book); err != nil {
+		for _, item := range associatedItems {
+			item.Genres = append(item.Genres, genre)
+			if err := ir.Update(&item); err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
@@ -105,7 +105,7 @@ func UpdateGenre(genreRepo types.GenreRepository, bookRepo types.BookRepository)
 	}
 }
 
-func DeleteGenre(repo types.GenreRepository) gin.HandlerFunc {
+func DeleteGenre(gr types.GenreRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -114,9 +114,9 @@ func DeleteGenre(repo types.GenreRepository) gin.HandlerFunc {
 			return
 		}
 
-		if err := repo.Delete(uint(id)); err != nil {
-			if strings.Contains(err.Error(), "foreign key constraint \"fk_book_genres_genre\"") {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "cannot delete genre with associated books"})
+		if err := gr.Delete(uint(id)); err != nil {
+			if strings.Contains(err.Error(), "foreign key constraint \"fk_item_genres_genre\"") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "cannot delete genre with associated items"})
 			} else {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			}

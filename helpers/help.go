@@ -6,64 +6,87 @@ import (
 	"github.com/gimtwi/go-library-project/types"
 )
 
-func CheckAuthorsAndGenres(book *types.Book, authorRepo types.AuthorRepository, genreRepo types.GenreRepository) error {
+func CheckAuthorsGenresKinds(item *types.Item, ar types.AuthorRepository, gr types.GenreRepository, kr types.KindRepository) error {
 	associatedAuthors := make([]types.Author, 0)
 	associatedGenres := make([]types.Genre, 0)
+	associatedKinds := make([]types.Kind, 0)
 
-	for _, author := range book.Authors {
-		a, err := authorRepo.GetByID(author.ID)
+	for _, author := range item.Authors {
+		a, err := ar.GetByID(author.ID)
 		if err != nil {
 			return fmt.Errorf("author not found")
 		}
 		associatedAuthors = append(associatedAuthors, *a)
 	}
 
-	for _, genre := range book.Genres {
-		g, err := genreRepo.GetByID(genre.ID)
+	for _, genre := range item.Genres {
+		g, err := gr.GetByID(genre.ID)
 		if err != nil {
 			return fmt.Errorf("genre not found")
 		}
 		associatedGenres = append(associatedGenres, *g)
 	}
 
-	book.Authors = associatedAuthors
-	book.Genres = associatedGenres
+	for _, kind := range item.Kinds {
+		k, err := kr.GetByID(kind.ID)
+		if err != nil {
+			return fmt.Errorf("genre not found")
+		}
+		associatedKinds = append(associatedKinds, *k)
+	}
+
+	item.Authors = associatedAuthors
+	item.Genres = associatedGenres
+	item.Kinds = associatedKinds
 
 	return nil
 }
 
-func DisassociateAuthorsAndGenres(book *types.Book, bookRepo types.BookRepository) error {
-	var existingBook types.Book
+func DisassociateAuthorsGenresKinds(item *types.Item, ir types.ItemRepository) error {
+	var existingItem types.Item
 
-	b, err := bookRepo.GetByID(book.ID)
+	i, err := ir.GetByID(item.ID)
 
 	if err != nil {
-		return fmt.Errorf("book not found")
+		return fmt.Errorf("item not found")
 	}
-	existingBook = *b
+	existingItem = *i
 
 	associatedAuthorIDs := make(map[uint]bool)
 	associatedGenreIDs := make(map[uint]bool)
+	associatedKindIDs := make(map[uint]bool)
 
-	for _, author := range book.Authors {
+	for _, author := range item.Authors {
 		associatedAuthorIDs[author.ID] = true
 	}
 
-	for _, genre := range book.Genres {
+	for _, genre := range item.Genres {
 		associatedGenreIDs[genre.ID] = true
 	}
 
-	for _, existingGenre := range existingBook.Genres {
-		if !associatedGenreIDs[existingGenre.ID] {
-			if err := bookRepo.DisassociateGenre(&existingBook, &existingGenre); err != nil {
+	for _, kind := range item.Kinds {
+		associatedKindIDs[kind.ID] = true
+	}
+
+	for _, existingAuthor := range existingItem.Authors {
+		if !associatedAuthorIDs[existingAuthor.ID] {
+			if err := ir.DisassociateAuthor(&existingItem, &existingAuthor); err != nil {
 				return err
 			}
 		}
 	}
 
-	for _, existingAuthor := range existingBook.Authors {
-		if !associatedAuthorIDs[existingAuthor.ID] {
-			if err := bookRepo.DisassociateAuthor(&existingBook, &existingAuthor); err != nil {
+	for _, existingGenre := range existingItem.Genres {
+		if !associatedGenreIDs[existingGenre.ID] {
+			if err := ir.DisassociateGenre(&existingItem, &existingGenre); err != nil {
+				return err
+			}
+		}
+	}
+
+	for _, existingKind := range existingItem.Kinds {
+		if !associatedKindIDs[existingKind.ID] {
+			if err := ir.DisassociateKind(&existingItem, &existingKind); err != nil {
 				return err
 			}
 		}

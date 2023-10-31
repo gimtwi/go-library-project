@@ -13,7 +13,7 @@ type Author struct {
 
 	Name string `json:"name" binding:"required"`
 
-	Books []Book `gorm:"many2many:book_authors" json:"books"`
+	Items []Item `gorm:"many2many:item_authors" json:"items"`
 }
 
 type AuthorRepository interface {
@@ -38,7 +38,7 @@ func (a *AuthorRepositoryImpl) Create(author *Author) error {
 
 func (a *AuthorRepositoryImpl) GetAll(order, filter string, limit uint) ([]Author, error) {
 	var authors []Author
-	if err := a.db.Preload("Books").Order("name "+order).Where("name LIKE ?", filter+"%").Limit(int(limit)).Find(&authors).Error; err != nil {
+	if err := a.db.Preload("Items").Order("name "+order).Where("name LIKE ?", filter+"%").Limit(int(limit)).Find(&authors).Error; err != nil {
 		return nil, err
 	}
 	return authors, nil
@@ -46,7 +46,7 @@ func (a *AuthorRepositoryImpl) GetAll(order, filter string, limit uint) ([]Autho
 
 func (a *AuthorRepositoryImpl) GetByID(id uint) (*Author, error) {
 	var author Author
-	if err := a.db.Preload("Books").First(&author, id).Error; err != nil {
+	if err := a.db.Preload("Items").First(&author, id).Error; err != nil {
 		return nil, err
 	}
 	return &author, nil

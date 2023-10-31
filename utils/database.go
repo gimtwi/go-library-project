@@ -27,6 +27,6 @@ func ConnectDB() {
 }
 
 func MigrateDB() {
-	DB.AutoMigrate(&types.User{}, &types.Book{}, &types.Author{}, &types.Genre{}, &types.Hold{}, &types.Loan{}, &types.Notification{})
+	DB.AutoMigrate(&types.User{}, &types.Item{}, &types.Author{}, &types.Genre{}, &types.Hold{}, &types.Loan{})
 	fmt.Println("database migration completed successfully!")
 }

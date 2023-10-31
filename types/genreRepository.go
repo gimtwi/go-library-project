@@ -14,7 +14,7 @@ type Genre struct {
 	Name        string `json:"name" binding:"required"`
 	Description string `json:"description"`
 
-	Books []Book `gorm:"many2many:book_genres" json:"books"`
+	Items []Item `gorm:"many2many:item_genres" json:"items"`
 }
 
 type GenreRepository interface {
@@ -39,7 +39,7 @@ func (g *GenreRepositoryImpl) Create(genre *Genre) error {
 
 func (g *GenreRepositoryImpl) GetAll(order, filter string, limit uint) ([]Genre, error) {
 	var genres []Genre
-	if err := g.db.Preload("Books").Order("name "+order).Where("name LIKE ?", filter+"%").Limit(int(limit)).Find(&genres).Error; err != nil {
+	if err := g.db.Preload("Items").Order("name "+order).Where("name LIKE ?", filter+"%").Limit(int(limit)).Find(&genres).Error; err != nil {
 		return nil, err
 	}
 	return genres, nil
@@ -47,7 +47,7 @@ func (g *GenreRepositoryImpl) GetAll(order, filter string, limit uint) ([]Genre,
 
 func (g *GenreRepositoryImpl) GetByID(id uint) (*Genre, error) {
 	var genre Genre
-	if err := g.db.Preload("Books").First(&genre, id).Error; err != nil {
+	if err := g.db.Preload("Items").First(&genre, id).Error; err != nil {
 		return nil, err
 	}
 	return &genre, nil

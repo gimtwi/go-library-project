@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetLoansByUserID(repo types.LoanRepository) gin.HandlerFunc {
+func GetLoansByUserID(lr types.LoanRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -19,7 +19,7 @@ func GetLoansByUserID(repo types.LoanRepository) gin.HandlerFunc {
 			return
 		}
 
-		loans, err := repo.GetByUserID(uint(id))
+		loans, err := lr.GetByUserID(uint(id))
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "couldn't fetch loans"})
 			return
@@ -28,7 +28,7 @@ func GetLoansByUserID(repo types.LoanRepository) gin.HandlerFunc {
 	}
 }
 
-func GetLoansByBookID(repo types.LoanRepository) gin.HandlerFunc {
+func GetLoansByItemID(lr types.LoanRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -37,7 +37,7 @@ func GetLoansByBookID(repo types.LoanRepository) gin.HandlerFunc {
 			return
 		}
 
-		loans, err := repo.GetByBookID(uint(id))
+		loans, err := lr.GetByItemID(uint(id))
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "couldn't fetch loans"})
 			return
@@ -46,7 +46,7 @@ func GetLoansByBookID(repo types.LoanRepository) gin.HandlerFunc {
 	}
 }
 
-func CreateLoan(loanRepo types.LoanRepository, bookRepo types.BookRepository, holdRepo types.HoldRepository) gin.HandlerFunc {
+func CreateLoan(lr types.LoanRepository, ir types.ItemRepository, hr types.HoldRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var loan types.Loan
 		if err := c.ShouldBindJSON(&loan); err != nil {
@@ -54,43 +54,43 @@ func CreateLoan(loanRepo types.LoanRepository, bookRepo types.BookRepository, ho
 			return
 		}
 
-		book, err := bookRepo.GetByID(loan.BookID)
+		item, err := ir.GetByID(loan.ItemID)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "book not found"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "item not found"})
 			return
 		}
 
-		userLoans, err := loanRepo.GetByUserID(loan.UserID)
+		userLoans, err := lr.GetByUserID(loan.UserID)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		if len(userLoans) >= 10 {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "user can't loan more than 10 books"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user can't loan more than 10 items"})
 			return
 		}
 
-		loans, err := loanRepo.GetByBookID(loan.BookID)
+		loans, err := lr.GetByItemID(loan.ItemID)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		if uint(len(loans)) >= book.Quantity {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "book is not available"})
+		if uint(len(loans)) >= item.Quantity {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "item is not available"})
 			return
 		}
 
-		holds, err := holdRepo.GetByBookID(loan.BookID)
+		holds, err := hr.GetByItemID(loan.ItemID)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		if uint(len(holds)) >= book.Quantity {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "book is not available"})
+		if uint(len(holds)) >= item.Quantity {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "item is not available"})
 			return
 		}
 
@@ -98,7 +98,7 @@ func CreateLoan(loanRepo types.LoanRepository, bookRepo types.BookRepository, ho
 		loan.ExpireDate = time.Now().Add(14 * 24 * time.Hour)  // * expires in 14 days
 		loan.RenewableOn = time.Now().Add(11 * 24 * time.Hour) // * 3 days before loan expires
 
-		if err := loanRepo.Create(&loan); err != nil {
+		if err := lr.Create(&loan); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -106,7 +106,7 @@ func CreateLoan(loanRepo types.LoanRepository, bookRepo types.BookRepository, ho
 	}
 }
 
-func ReturnTheBook(loanRepo types.LoanRepository, holdRepo types.HoldRepository, bookRepo types.BookRepository) gin.HandlerFunc {
+func ReturnTheItem(lr types.LoanRepository, hr types.HoldRepository, ir types.ItemRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -115,18 +115,18 @@ func ReturnTheBook(loanRepo types.LoanRepository, holdRepo types.HoldRepository,
 			return
 		}
 
-		loan, err := loanRepo.GetByID(uint(id))
+		loan, err := lr.GetByID(uint(id))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		if err := loanRepo.Delete(uint(id)); err != nil {
+		if err := lr.Delete(uint(id)); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		if err := help.RearrangeHolds(loan.BookID, holdRepo, loanRepo, bookRepo); err != nil {
+		if err := help.RearrangeHolds(loan.ItemID, hr, lr, ir); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

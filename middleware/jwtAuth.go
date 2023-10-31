@@ -39,7 +39,7 @@ func ValidateJWT(tokenString string) (*jwt.Token, error) {
 
 }
 
-func CheckPrivilege(repo types.UserRepository, role types.UserRole) gin.HandlerFunc {
+func CheckPrivilege(ur types.UserRepository, role types.UserRole) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr, err := c.Cookie(os.Getenv("COOKIE_NAME"))
 
@@ -76,7 +76,7 @@ func CheckPrivilege(repo types.UserRepository, role types.UserRole) gin.HandlerF
 			}
 
 			id := uint(math.Floor(idClaim))
-			user, errUser := repo.GetByID(uint(id))
+			user, errUser := ur.GetByID(uint(id))
 			if errUser != nil {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}
@@ -98,7 +98,7 @@ func CheckPrivilege(repo types.UserRepository, role types.UserRole) gin.HandlerF
 	}
 }
 
-func CompareCookiesAndParameter(repo types.UserRepository) gin.HandlerFunc {
+func CompareCookiesAndParameter(ur types.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		userID, err := strconv.Atoi(idStr)
@@ -142,7 +142,7 @@ func CompareCookiesAndParameter(repo types.UserRepository) gin.HandlerFunc {
 			}
 
 			id := uint(math.Floor(idClaim))
-			user, errUser := repo.GetByID(id)
+			user, errUser := ur.GetByID(id)
 			if errUser != nil {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}

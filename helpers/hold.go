@@ -7,18 +7,18 @@ import (
 	"github.com/gimtwi/go-library-project/types"
 )
 
-func CheckInitialAvailability(hold *types.Hold, book *types.Book, holdRepo types.HoldRepository, loanRepo types.LoanRepository) error {
-	holds, err := holdRepo.GetByBookID(book.ID)
+func CheckInitialAvailability(hold *types.Hold, item *types.Item, hr types.HoldRepository, lr types.LoanRepository) error {
+	holds, err := hr.GetByItemID(item.ID)
 	if err != nil {
 		return err
 	}
 
-	loans, err := loanRepo.GetByBookID(book.ID)
+	loans, err := lr.GetByItemID(item.ID)
 	if err != nil {
 		return err
 	}
 
-	if book.Quantity > uint(len(loans)) && book.Quantity > uint(len(holds)) {
+	if item.Quantity > uint(len(loans)) && item.Quantity > uint(len(holds)) {
 		hold.IsAvailable = true
 	} else {
 		hold.IsAvailable = false
@@ -27,16 +27,15 @@ func CheckInitialAvailability(hold *types.Hold, book *types.Book, holdRepo types
 	return nil
 }
 
-func ReCheckInitialAvailability(hold *types.Hold, book *types.Book, loanRepo types.LoanRepository) error {
-
-	loans, err := loanRepo.GetByBookID(book.ID)
+func ReCheckInitialAvailability(hold *types.Hold, item *types.Item, lr types.LoanRepository) error {
+	loans, err := lr.GetByItemID(item.ID)
 	if err != nil {
 		return err
 	}
 
-	availableBooks := book.Quantity - uint(len(loans))
+	availableItems := item.Quantity - uint(len(loans))
 
-	if availableBooks >= hold.InLinePosition {
+	if availableItems >= hold.InLinePosition {
 		hold.IsAvailable = true
 	} else {
 		hold.IsAvailable = false
@@ -45,8 +44,8 @@ func ReCheckInitialAvailability(hold *types.Hold, book *types.Book, loanRepo typ
 	return nil
 }
 
-func CalculateDaysToWait(hold *types.Hold, book *types.Book) error {
-	var fullCycles float64 = float64(hold.InLinePosition-1) / float64(book.Quantity)
+func CalculateDaysToWait(hold *types.Hold, item *types.Item) error {
+	var fullCycles float64 = float64(hold.InLinePosition-1) / float64(item.Quantity)
 	waitingDays := uint(math.Round(fullCycles)) * 14
 
 	hold.EstimatedWeeksToWait = daysToWeeks(waitingDays)
@@ -54,18 +53,18 @@ func CalculateDaysToWait(hold *types.Hold, book *types.Book) error {
 	return nil
 }
 
-func ReCalculateDaysToWait(hold *types.Hold, book *types.Book, loanRepo types.LoanRepository) error {
-	loans, err := loanRepo.GetByBookID(book.ID)
+func ReCalculateDaysToWait(hold *types.Hold, item *types.Item, lr types.LoanRepository) error {
+	loans, err := lr.GetByItemID(item.ID)
 	if err != nil {
 		return err
 	}
 
-	availableBooks := book.Quantity - uint(len(loans))
+	availableItems := item.Quantity - uint(len(loans))
 
-	if availableBooks >= hold.InLinePosition {
+	if availableItems >= hold.InLinePosition {
 		hold.EstimatedWeeksToWait = 0
 	} else {
-		var fullCycles float64 = float64(hold.InLinePosition) / float64(book.Quantity)
+		var fullCycles float64 = float64(hold.InLinePosition) / float64(item.Quantity)
 		if uint(fullCycles) == 0 {
 			waitingDays := uint(math.Ceil(fullCycles)) * 14
 			hold.EstimatedWeeksToWait = daysToWeeks(waitingDays)
@@ -84,34 +83,34 @@ func daysToWeeks(days uint) uint {
 	return uint(weeks)
 }
 
-func RearrangeHolds(bookID uint, holdRepo types.HoldRepository, loanRepo types.LoanRepository, bookRepo types.BookRepository) error {
-	holds, err := holdRepo.GetByBookID(uint(bookID))
+func RearrangeHolds(itemID uint, hr types.HoldRepository, lr types.LoanRepository, ir types.ItemRepository) error {
+	holds, err := hr.GetByItemID(uint(itemID))
 	if err != nil {
 		return err
 	}
 
-	book, err := bookRepo.GetByID(uint(bookID))
+	item, err := ir.GetByID(uint(itemID))
 	if err != nil {
 		return err
 	}
 
 	for i, hold := range holds {
 		hold.InLinePosition = uint(i + 1)
-		if err := ReCheckInitialAvailability(&hold, book, loanRepo); err != nil {
+		if err := ReCheckInitialAvailability(&hold, item, lr); err != nil {
 			return err
 		}
 
 		if hold.IsAvailable {
-			hold.ExpiryDate = time.Now().Add(3 * 24 * time.Hour) // if book is available for loner than 3 days the hold will expire automatically
+			hold.ExpiryDate = time.Now().Add(3 * 24 * time.Hour) // if item is available for loner than 3 days the hold will expire automatically
 			hold.EstimatedWeeksToWait = 0
 		} else {
 
-			if err := ReCalculateDaysToWait(&hold, book, loanRepo); err != nil {
+			if err := ReCalculateDaysToWait(&hold, item, lr); err != nil {
 				return err
 			}
 		}
 
-		if err := holdRepo.Update(&hold); err != nil {
+		if err := hr.Update(&hold); err != nil {
 			return err
 		}
 	}
