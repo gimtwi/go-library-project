@@ -1,0 +1,94 @@
+{
+    "client": "Thunder Client",
+    "collectionName": "item crud",
+    "dateExported": "2023-10-31T11:47:41.481Z",
+    "version": "1.1",
+    "folders": [],
+    "requests": [
+        {
+            "_id": "63fc5762-45c3-4255-a14d-cb5821ab5cdd",
+            "colId": "fca517e5-ec56-4e87-bfaf-3e8d29dd3409",
+            "containerId": "",
+            "name": "create item",
+            "url": "http://localhost:3000/item",
+            "method": "POST",
+            "sortNum": 32500,
+            "created": "2023-10-25T06:41:33.057Z",
+            "modified": "2023-10-30T08:27:06.387Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"title\": \"A Court of Thorns and Roses\",\n  \"description\": \"A Court of Thorns and Roses is a young adult high fantasy series by Sarah J. Maas. The saga begins when Feyre Archeron, a 19-year-old huntress, is kidnapped and brought to the faerie lands of Prythian after she kills a faerie wolf. Her kidnapper is Tamlin, a High Fae and one of the seven High Lords of Prythian.\",\n  \"authors\": [\n    {\n      \"id\": 1\n    }\n  ],\n  \"genres\": [\n    {\n      \"id\": 1\n    }\n  ],\n   \"kind\": [\n    {\n      \"id\": 1\n    }\n  ],\n  \"quantity\": 3\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "ac5f4dd3-ccd6-4e30-8e1d-3984e1ecc8b3",
+            "colId": "fca517e5-ec56-4e87-bfaf-3e8d29dd3409",
+            "containerId": "",
+            "name": "items",
+            "url": "http://localhost:3000/item",
+            "method": "GET",
+            "sortNum": 40000,
+            "created": "2023-10-25T06:41:33.058Z",
+            "modified": "2023-10-30T08:26:50.291Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"order\": \"ASC\",\n  \"filter\": \"\",\n  \"limit\": 10\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "84283efe-4ecb-489a-bb2e-e395d8671e63",
+            "colId": "fca517e5-ec56-4e87-bfaf-3e8d29dd3409",
+            "containerId": "",
+            "name": "items by id",
+            "url": "http://localhost:3000/item/author/2",
+            "method": "GET",
+            "sortNum": 50000,
+            "created": "2023-10-25T06:41:33.059Z",
+            "modified": "2023-10-30T08:26:42.203Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        },
+        {
+            "_id": "6a8cf6d5-0bd9-4774-826e-f9ba6f49b9f1",
+            "colId": "fca517e5-ec56-4e87-bfaf-3e8d29dd3409",
+            "containerId": "",
+            "name": "delete items by id",
+            "url": "http://localhost:3000/item/1",
+            "method": "DELETE",
+            "sortNum": 52500,
+            "created": "2023-10-25T06:41:33.061Z",
+            "modified": "2023-10-30T08:25:23.004Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        },
+        {
+            "_id": "d309a11e-c00e-40ea-9e88-69402617e272",
+            "colId": "fca517e5-ec56-4e87-bfaf-3e8d29dd3409",
+            "containerId": "",
+            "name": "update items by id ",
+            "url": "http://localhost:3000/item/1",
+            "method": "PUT",
+            "sortNum": 55000,
+            "created": "2023-10-25T06:41:33.062Z",
+            "modified": "2023-10-30T08:26:29.498Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"title\": \"House of Earth and Blood\",\n  \"description\": \"Bryce Quinlan had the perfect life—working hard all day and partying all night—until a demon murdered her closest friends, leaving her bereft, wounded, and alone. When the accused is behind bars but the crimes start up again, Bryce finds herself at the heart of the investigation. update\",\n  \"authors\": [\n    {\n      \"id\": 1\n    }\n  ],\n  \"genres\": [\n    {\n      \"id\": 1\n    },\n    {\n      \"id\": 2\n    },\n    {\"id\":3}\n  ],\n  \"kind\": [{\"id\": 1}],\n  \"quantity\": 3\n}",
+                "form": []
+            },
+            "tests": []
+        }
+    ]
+}

@@ -1,0 +1,117 @@
+{
+    "client": "Thunder Client",
+    "collectionName": "hold crud",
+    "dateExported": "2023-10-31T11:48:05.242Z",
+    "version": "1.1",
+    "folders": [],
+    "requests": [
+        {
+            "_id": "1970a99f-2f1a-4d32-b426-1a819cf9ccc5",
+            "colId": "bb6cb3ea-4553-4d09-bdb3-ebd682d20874",
+            "containerId": "",
+            "name": "place hold",
+            "url": "http://localhost:3000/hold",
+            "method": "POST",
+            "sortNum": 65000,
+            "created": "2023-10-25T06:47:18.131Z",
+            "modified": "2023-10-25T10:34:23.468Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"bookID\": 1\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "e7a25175-d3db-466c-8e18-7c01420bcf78",
+            "colId": "bb6cb3ea-4553-4d09-bdb3-ebd682d20874",
+            "containerId": "",
+            "name": "get user holds ",
+            "url": "http://localhost:3000/hold/user/1",
+            "method": "GET",
+            "sortNum": 66250,
+            "created": "2023-10-25T06:47:18.133Z",
+            "modified": "2023-10-25T07:22:23.976Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        },
+        {
+            "_id": "a4065d04-751e-4051-a6bd-7768b21b9f32",
+            "colId": "bb6cb3ea-4553-4d09-bdb3-ebd682d20874",
+            "containerId": "",
+            "name": "get book holds ",
+            "url": "http://localhost:3000/hold/book/1",
+            "method": "GET",
+            "sortNum": 66875,
+            "created": "2023-10-25T13:43:26.304Z",
+            "modified": "2023-10-27T05:58:20.496Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        },
+        {
+            "_id": "0a24819b-058f-4530-8660-14b0b5f6767d",
+            "colId": "bb6cb3ea-4553-4d09-bdb3-ebd682d20874",
+            "containerId": "",
+            "name": "update author",
+            "url": "http://localhost:3000/author/2",
+            "method": "PUT",
+            "sortNum": 67500,
+            "created": "2023-10-25T06:47:18.132Z",
+            "modified": "2023-10-25T06:47:18.132Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"name\": \"Sarah J. Maas\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "79825d4e-8843-4ebb-87ab-731c9e57d671",
+            "colId": "bb6cb3ea-4553-4d09-bdb3-ebd682d20874",
+            "containerId": "",
+            "name": "resolve hold",
+            "url": "http://localhost:3000/resolve-hold/39",
+            "method": "DELETE",
+            "sortNum": 72500,
+            "created": "2023-10-25T06:47:18.134Z",
+            "modified": "2023-10-27T12:10:42.248Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        },
+        {
+            "_id": "0eae1263-112d-4a01-aac1-aba75267dec5",
+            "colId": "bb6cb3ea-4553-4d09-bdb3-ebd682d20874",
+            "containerId": "",
+            "name": "cancel hold",
+            "url": "http://localhost:3000/cancel-hold/33",
+            "method": "DELETE",
+            "sortNum": 82500,
+            "created": "2023-10-25T14:34:27.525Z",
+            "modified": "2023-10-27T11:57:14.213Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        },
+        {
+            "_id": "cc9984ff-b717-4187-977c-f8dede5704bd",
+            "colId": "bb6cb3ea-4553-4d09-bdb3-ebd682d20874",
+            "containerId": "",
+            "name": "delete all holds by book id",
+            "url": "http://localhost:3000/hold/1",
+            "method": "DELETE",
+            "sortNum": 92500,
+            "created": "2023-10-27T05:55:07.876Z",
+            "modified": "2023-10-27T05:58:35.630Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        }
+    ]
+}

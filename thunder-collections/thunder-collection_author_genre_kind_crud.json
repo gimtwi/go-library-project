@@ -1,0 +1,237 @@
+{
+    "client": "Thunder Client",
+    "collectionName": "author/genre/kind crud",
+    "dateExported": "2023-10-31T11:47:48.665Z",
+    "version": "1.1",
+    "folders": [],
+    "requests": [
+        {
+            "_id": "ae1443db-03fa-4ab3-86b3-a911bf417fec",
+            "colId": "21fda04b-d951-4881-a98d-1fd60cc3a656",
+            "containerId": "",
+            "name": "create author",
+            "url": "http://localhost:3000/author",
+            "method": "POST",
+            "sortNum": 65000,
+            "created": "2023-10-25T06:43:00.045Z",
+            "modified": "2023-10-25T06:43:00.045Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"name\": \"Sarah J. Maas\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "670a79b1-c7b9-468b-b6ad-4012791ae2e2",
+            "colId": "21fda04b-d951-4881-a98d-1fd60cc3a656",
+            "containerId": "",
+            "name": "update author",
+            "url": "http://localhost:3000/author/2",
+            "method": "PUT",
+            "sortNum": 67500,
+            "created": "2023-10-25T06:43:00.046Z",
+            "modified": "2023-10-25T06:43:00.046Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"name\": \"Sarah J. Maas\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "d242bde8-0dee-4153-82fa-676371dae358",
+            "colId": "21fda04b-d951-4881-a98d-1fd60cc3a656",
+            "containerId": "",
+            "name": "get authors",
+            "url": "http://localhost:3000/author",
+            "method": "GET",
+            "sortNum": 70000,
+            "created": "2023-10-25T06:43:00.047Z",
+            "modified": "2023-10-25T06:43:00.047Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"order\": \"ASC\",\n  \"filter\": \"\",\n  \"limit\": 10\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "19799d45-3265-428a-a846-1fcbda29610e",
+            "colId": "21fda04b-d951-4881-a98d-1fd60cc3a656",
+            "containerId": "",
+            "name": "delete authors",
+            "url": "http://localhost:3000/author/1",
+            "method": "DELETE",
+            "sortNum": 72500,
+            "created": "2023-10-25T06:43:00.048Z",
+            "modified": "2023-10-25T06:43:00.048Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"name\": \"Sarah J. Maas\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "1e080cfd-6ceb-4f36-ab9a-e5e98f449e6b",
+            "colId": "21fda04b-d951-4881-a98d-1fd60cc3a656",
+            "containerId": "",
+            "name": "create genre",
+            "url": "http://localhost:3000/genre",
+            "method": "POST",
+            "sortNum": 75000,
+            "created": "2023-10-25T06:43:00.049Z",
+            "modified": "2023-10-25T06:43:00.049Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"name\": \"High Fantasy\",\n  \"description\": \"High fantasy (or epic fantasy) is a fantasy subgenre in which the story takes place in a setting very unlike Earth and deals with world-threatening forces. The story might feature fantastic creatures, historic or unusual technologies, magical elements, and other unearthly elements.\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "bf9293e3-2281-417a-b38a-275e791fcc07",
+            "colId": "21fda04b-d951-4881-a98d-1fd60cc3a656",
+            "containerId": "",
+            "name": "update genre",
+            "url": "http://localhost:3000/genre/8",
+            "method": "PUT",
+            "sortNum": 80000,
+            "created": "2023-10-25T06:43:00.050Z",
+            "modified": "2023-10-25T06:43:00.050Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"name\": \"High Fantasy\",\n  \"description\": \"High fantasy (or epic fantasy) is a fantasy subgenre in which the story takes place in a setting very unlike Earth and deals with world-threatening forces. The story might feature fantastic creatures, historic or unusual technologies, magical elements, and other unearthly elements.\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "99e6e3fa-8179-4a0a-a8e7-21529132364b",
+            "colId": "21fda04b-d951-4881-a98d-1fd60cc3a656",
+            "containerId": "",
+            "name": "get genre",
+            "url": "http://localhost:3000/genre",
+            "method": "GET",
+            "sortNum": 85000,
+            "created": "2023-10-25T06:43:00.052Z",
+            "modified": "2023-10-25T06:43:00.052Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"order\": \"ASC\",\n  \"filter\": \"\",\n  \"limit\": 10\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "fb7746aa-dc38-4914-9ac6-cff629b1899a",
+            "colId": "21fda04b-d951-4881-a98d-1fd60cc3a656",
+            "containerId": "",
+            "name": "delete genre",
+            "url": "http://localhost:3000/genre/3",
+            "method": "DELETE",
+            "sortNum": 95000,
+            "created": "2023-10-25T06:43:00.053Z",
+            "modified": "2023-10-25T06:43:00.053Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"name\": \"High Fantasy\",\n  \"description\": \"High fantasy (or epic fantasy) is a fantasy subgenre in which the story takes place in a setting very unlike Earth and deals with world-threatening forces. The story might feature fantastic creatures, historic or unusual technologies, magical elements, and other unearthly elements. update\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "e19cf195-6584-493c-ae02-072962bf830a",
+            "colId": "21fda04b-d951-4881-a98d-1fd60cc3a656",
+            "containerId": "",
+            "name": "create kind",
+            "url": "http://localhost:3000/kind",
+            "method": "POST",
+            "sortNum": 105000,
+            "created": "2023-10-30T08:27:33.950Z",
+            "modified": "2023-10-30T08:28:49.346Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"name\": \"High Fantasy\",\n  \"description\": \"High fantasy (or epic fantasy) is a fantasy subgenre in which the story takes place in a setting very unlike Earth and deals with world-threatening forces. The story might feature fantastic creatures, historic or unusual technologies, magical elements, and other unearthly elements.\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "8375f143-b92b-4dc0-988a-37917086be73",
+            "colId": "21fda04b-d951-4881-a98d-1fd60cc3a656",
+            "containerId": "",
+            "name": "update kind",
+            "url": "http://localhost:3000/kind/8",
+            "method": "PUT",
+            "sortNum": 115000,
+            "created": "2023-10-30T08:27:43.837Z",
+            "modified": "2023-10-30T08:28:59.651Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"name\": \"High Fantasy\",\n  \"description\": \"High fantasy (or epic fantasy) is a fantasy subgenre in which the story takes place in a setting very unlike Earth and deals with world-threatening forces. The story might feature fantastic creatures, historic or unusual technologies, magical elements, and other unearthly elements.\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "51000857-58e7-4de3-84ee-656c69bacdd0",
+            "colId": "21fda04b-d951-4881-a98d-1fd60cc3a656",
+            "containerId": "",
+            "name": "get kind",
+            "url": "http://localhost:3000/kind",
+            "method": "GET",
+            "sortNum": 125000,
+            "created": "2023-10-30T08:27:51.501Z",
+            "modified": "2023-10-30T08:29:05.946Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"order\": \"ASC\",\n  \"filter\": \"\",\n  \"limit\": 10\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "6209e7e1-b7ec-4ddf-a5aa-23bd8c2375e6",
+            "colId": "21fda04b-d951-4881-a98d-1fd60cc3a656",
+            "containerId": "",
+            "name": "delete kind",
+            "url": "http://localhost:3000/kind/3",
+            "method": "DELETE",
+            "sortNum": 135000,
+            "created": "2023-10-30T08:27:57.653Z",
+            "modified": "2023-10-30T08:29:13.882Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"name\": \"High Fantasy\",\n  \"description\": \"High fantasy (or epic fantasy) is a fantasy subgenre in which the story takes place in a setting very unlike Earth and deals with world-threatening forces. The story might feature fantastic creatures, historic or unusual technologies, magical elements, and other unearthly elements. update\"\n}",
+                "form": []
+            },
+            "tests": []
+        }
+    ]
+}
