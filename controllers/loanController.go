@@ -106,6 +106,12 @@ func CreateLoan(lr types.LoanRepository, ir types.ItemRepository, hr types.HoldR
 	}
 }
 
+func ProlongLoan(lr types.LoanRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		//TODO enable for user to prolong the loan if there are no pending holds
+	}
+}
+
 func ReturnTheItem(lr types.LoanRepository, hr types.HoldRepository, ir types.ItemRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")

@@ -30,7 +30,7 @@ func CheckAuthorsGenresKinds(item *types.Item, ar types.AuthorRepository, gr typ
 	for _, kind := range item.Kinds {
 		k, err := kr.GetByID(kind.ID)
 		if err != nil {
-			return fmt.Errorf("genre not found")
+			return fmt.Errorf("kind not found")
 		}
 		associatedKinds = append(associatedKinds, *k)
 	}

@@ -18,7 +18,7 @@ type Hold struct {
 	ExpiryDate           time.Time `json:"expiryDate"`
 	InLinePosition       uint      `json:"inLinePosition"`       // * place in line
 	EstimatedWeeksToWait uint      `json:"estimatedWeeksToWait"` // * approximate waiting days
-
+	DeliveryDate         time.Time `json:"deliveryDate"`         // * deliver the hold after the date
 }
 
 type HoldRepository interface {

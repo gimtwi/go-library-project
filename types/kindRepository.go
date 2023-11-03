@@ -11,9 +11,7 @@ type Kind struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
-	Name        string `json:"name" binding:"required"`
-	Description string `json:"description"`
-
+	Name  string `json:"name" binding:"required"`
 	Items []Item `gorm:"many2many:item_kinds" json:"items"`
 }
 

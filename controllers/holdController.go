@@ -95,6 +95,7 @@ func PlaceHold(hr types.HoldRepository, lr types.LoanRepository, ir types.ItemRe
 		}
 
 		hold.PlacedDate = time.Now()
+		hold.DeliveryDate = time.Now()
 
 		if err := help.CheckInitialAvailability(&hold, item, hr, lr); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -119,6 +120,43 @@ func PlaceHold(hr types.HoldRepository, lr types.LoanRepository, ir types.ItemRe
 		}
 		c.JSON(http.StatusCreated, hold)
 	}
+}
+
+// * by design supposed to be used when the hold is available to the user, but user wants to postpone the delivery
+func ChangeDeliveryDate(hr types.HoldRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var hold types.Hold
+		if err := c.ShouldBindJSON(&hold); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		userID := middleware.GetUserIDFromTheToken(c)
+		if userID == 0 {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
+			return
+		}
+
+		updatedHold, err := hr.GetByID(hold.ID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "this hold doesn't exist"})
+			return
+		}
+
+		updatedHold.DeliveryDate = hold.DeliveryDate
+
+		if err := hr.Update(updatedHold); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		//TODO update in line position
+		//TODO update is available to false
+		//TODO update other holds
+
+		c.JSON(http.StatusOK, updatedHold)
+	}
+
 }
 
 func CancelHold(hr types.HoldRepository, lr types.LoanRepository, ir types.ItemRepository, ur types.UserRepository) gin.HandlerFunc {
@@ -150,11 +188,6 @@ func CancelHold(hr types.HoldRepository, lr types.LoanRepository, ir types.ItemR
 
 		requiredRole := types.Moderator
 
-		if hold.UserID != userID {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "you can't perform this action"})
-			return
-		}
-
 		if hold.UserID == userID || types.CheckPrivilege(user.Role, requiredRole) {
 
 			if err := hr.Delete(uint(id)); err != nil {
@@ -166,11 +199,15 @@ func CancelHold(hr types.HoldRepository, lr types.LoanRepository, ir types.ItemR
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "you can't perform this action"})
+			return
 		}
 
 	}
 }
 
+// * must be performed by moderator
 func ResolveHold(hr types.HoldRepository, lr types.LoanRepository, ir types.ItemRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
