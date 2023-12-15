@@ -168,7 +168,7 @@ func (i *ItemRepositoryImpl) DisassociateKind(item *Item, kind *Kind) error {
 		return fmt.Errorf("kind is not associated with the item")
 	}
 
-	result := i.db.Model(item).Association("kinds").Delete(kind)
+	result := i.db.Model(item).Association("Kinds").Delete(kind)
 
 	if result != nil {
 		if errors.Is(result, gorm.ErrRecordNotFound) {

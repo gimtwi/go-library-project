@@ -22,3 +22,8 @@ Before you can run this application, make sure you have the following prerequisi
    ```bash
    docker run --name go-library -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=password -e POSTGRES_DB=library-project -p 5432:5432 -d postgres
 
+3. Same for the test database:
+
+   ```bash
+   docker run --name go-library-test -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=password -e POSTGRES_DB=library-project-test -p 5433:5432 -d postgres
+
