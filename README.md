@@ -1,13 +1,12 @@
 # Go Application with PostgreSQL Database
 
-This repository contains a Go application that uses a PostgreSQL database running in a Docker container.
+This repository contains a Go application that uses a PostgreSQL database.
 
 ## Prerequisites
 
 Before you can run this application, make sure you have the following prerequisites installed on your system:
 
 - Go (https://golang.org/)
-- Docker (https://www.docker.com/)
 
 ## Setup
 
