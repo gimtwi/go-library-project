@@ -3,10 +3,8 @@ package middleware
 import (
 	"fmt"
 	"log"
-	"math"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/gimtwi/go-library-project/types"
@@ -70,13 +68,12 @@ func CheckPrivilege(ur types.UserRepository, role types.UserRole) gin.HandlerFun
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}
 
-			idClaim, ok := claims["id"].(float64)
-			if !ok || idClaim < 0 {
+			id, ok := claims["id"].(string)
+			if !ok || id == "" {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}
 
-			id := uint(math.Floor(idClaim))
-			user, errUser := ur.GetByID(uint(id))
+			user, errUser := ur.GetByID(id)
 			if errUser != nil {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}
@@ -100,12 +97,7 @@ func CheckPrivilege(ur types.UserRepository, role types.UserRole) gin.HandlerFun
 
 func CompareCookiesAndParameter(ur types.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idStr := c.Param("id")
-		userID, err := strconv.Atoi(idStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
-			return
-		}
+		userID := c.Param("id")
 
 		tokenStr, err := c.Cookie(os.Getenv("COOKIE_NAME"))
 
@@ -136,18 +128,17 @@ func CompareCookiesAndParameter(ur types.UserRepository) gin.HandlerFunc {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}
 
-			idClaim, ok := claims["id"].(float64)
-			if !ok || idClaim < 0 {
+			id, ok := claims["id"].(string)
+			if !ok || id == "" {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}
 
-			id := uint(math.Floor(idClaim))
 			user, errUser := ur.GetByID(id)
 			if errUser != nil {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}
 
-			if user.ID != uint(userID) {
+			if user.ID != userID {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}
 
@@ -162,32 +153,31 @@ func CompareCookiesAndParameter(ur types.UserRepository) gin.HandlerFunc {
 	}
 }
 
-func GetUserIDFromTheToken(c *gin.Context) uint {
+func GetUserIDFromTheToken(c *gin.Context) string {
 	tokenStr, err := c.Cookie(os.Getenv("COOKIE_NAME"))
 	if err != nil {
-		return 0
+		return ""
 	}
 
 	token, err := ValidateJWT(tokenStr)
 	if err != nil {
-		return 0
+		return ""
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		if float64(time.Now().Unix()) > claims["exp"].(float64) {
-			return 0
+			return ""
 		}
 
-		idClaim, ok := claims["id"].(float64)
-		if !ok || idClaim < 0 {
-			return 0
+		id, ok := claims["id"].(string)
+		if !ok || id == "" {
+			return ""
 		}
 
-		id := uint(math.Floor(idClaim))
 		return id
 
 	} else {
-		return 0
+		return ""
 	}
 }
 

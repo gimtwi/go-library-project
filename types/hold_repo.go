@@ -8,9 +8,9 @@ import (
 )
 
 type Hold struct {
-	ID     uint `gorm:"primarykey" json:"id"`
-	ItemID uint `json:"itemID" binding:"required"`
-	UserID uint `json:"userID"`
+	ID     uint   `gorm:"primarykey" json:"id"`
+	ItemID uint   `json:"itemID" binding:"required"`
+	UserID string `json:"userID"`
 
 	PlacedDate time.Time `json:"placedDate"`
 
@@ -23,7 +23,7 @@ type Hold struct {
 
 type HoldRepository interface {
 	Create(hold *Hold) error
-	GetByUserID(userID uint) ([]Hold, error)
+	GetByUserID(userID string) ([]Hold, error)
 	GetByItemID(itemID uint) ([]Hold, error)
 	GetByID(id uint) (*Hold, error)
 	Update(hold *Hold) error
@@ -42,7 +42,7 @@ func (h *HoldRepositoryImpl) Create(hold *Hold) error {
 	return h.db.Create(hold).Error
 }
 
-func (h *HoldRepositoryImpl) GetByUserID(userID uint) ([]Hold, error) {
+func (h *HoldRepositoryImpl) GetByUserID(userID string) ([]Hold, error) {
 	var holds []Hold
 	if err := h.db.Find(&holds).Where("userID = ?", userID).Error; err != nil {
 		return nil, err

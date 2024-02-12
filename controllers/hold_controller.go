@@ -13,14 +13,9 @@ import (
 
 func GetHoldsByUserID(hr types.HoldRepository, lr types.LoanRepository, ir types.ItemRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idStr := c.Param("id")
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid hold id"})
-			return
-		}
+		id := c.Param("id")
 
-		holds, err := hr.GetByUserID(uint(id))
+		holds, err := hr.GetByUserID(id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't fetch holds"})
 			return
@@ -57,7 +52,7 @@ func PlaceHold(hr types.HoldRepository, lr types.LoanRepository, ir types.ItemRe
 		}
 
 		userID := middleware.GetUserIDFromTheToken(c)
-		if userID == 0 {
+		if userID == "" {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
 			return
 		}
@@ -132,7 +127,7 @@ func ChangeDeliveryDate(hr types.HoldRepository) gin.HandlerFunc {
 		}
 
 		userID := middleware.GetUserIDFromTheToken(c)
-		if userID == 0 {
+		if userID == "" {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
 			return
 		}
@@ -169,7 +164,7 @@ func CancelHold(hr types.HoldRepository, lr types.LoanRepository, ir types.ItemR
 		}
 
 		userID := middleware.GetUserIDFromTheToken(c)
-		if userID == 0 {
+		if userID == "" {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
 			return
 		}

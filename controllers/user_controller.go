@@ -3,11 +3,11 @@ package controllers
 import (
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/gimtwi/go-library-project/middleware"
 	"github.com/gimtwi/go-library-project/types"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func GetAllUsers(ur types.UserRepository) gin.HandlerFunc {
@@ -29,14 +29,9 @@ func GetAllUsers(ur types.UserRepository) gin.HandlerFunc {
 
 func GetUserByID(ur types.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idStr := c.Param("id")
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
-			return
-		}
+		id := c.Param("id")
 
-		user, err := ur.GetByID(uint(id))
+		user, err := ur.GetByID(id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 			return
@@ -76,6 +71,7 @@ func RegisterUser(ur types.UserRepository) gin.HandlerFunc {
 			return
 		}
 
+		user.ID = uuid.New().String()
 		user.Role = types.Member
 		user.Password = hash
 
@@ -133,14 +129,9 @@ func Logout(ur types.UserRepository) gin.HandlerFunc {
 
 func AssignRole(ur types.UserRepository, role types.UserRole) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idStr := c.Param("id")
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
-			return
-		}
+		id := c.Param("id")
 
-		user, err := ur.GetByID(uint(id))
+		user, err := ur.GetByID(id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 			return
@@ -165,14 +156,9 @@ func ChangePassword(ur types.UserRepository) gin.HandlerFunc {
 			return
 		}
 
-		idStr := c.Param("id")
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
-			return
-		}
+		id := c.Param("id")
 
-		user, err := ur.GetByID(uint(id))
+		user, err := ur.GetByID(id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 			return
@@ -207,14 +193,9 @@ func ChangePassword(ur types.UserRepository) gin.HandlerFunc {
 
 func DeleteUser(ur types.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idStr := c.Param("id")
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
-			return
-		}
+		id := c.Param("id")
 
-		if err := ur.Delete(uint(id)); err != nil {
+		if err := ur.Delete(id); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

@@ -23,7 +23,7 @@ type LoginRequest struct {
 }
 
 type User struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
+	ID        string    `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
@@ -41,7 +41,7 @@ type User struct {
 }
 
 type UserResponse struct {
-	ID        uint      `json:"id"`
+	ID        string    `json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
@@ -66,10 +66,10 @@ type ChangePasswordRequest struct {
 type UserRepository interface {
 	Create(user *User) error
 	GetAll() ([]User, error)
-	GetByID(id uint) (*User, error)
+	GetByID(id string) (*User, error)
 	GetByUniqueField(field string, value string) (*User, error)
 	Update(user *User) error
-	Delete(id uint) error
+	Delete(id string) error
 }
 
 type UserRepositoryImpl struct {
@@ -130,7 +130,7 @@ func (ur *UserRepositoryImpl) GetAll() ([]User, error) {
 	return users, nil
 }
 
-func (ur *UserRepositoryImpl) GetByID(id uint) (*User, error) {
+func (ur *UserRepositoryImpl) GetByID(id string) (*User, error) {
 	var user User
 	if err := ur.db.First(&user, id).Error; err != nil {
 		return nil, err
@@ -150,7 +150,7 @@ func (ur *UserRepositoryImpl) Update(user *User) error {
 	return ur.db.Save(user).Error
 }
 
-func (ur *UserRepositoryImpl) Delete(id uint) error {
+func (ur *UserRepositoryImpl) Delete(id string) error {
 	return ur.db.Delete(&User{}, id).Error
 }
 

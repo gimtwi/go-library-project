@@ -7,9 +7,9 @@ import (
 )
 
 type Loan struct {
-	ID     uint `gorm:"primarykey" json:"id"`
-	ItemID uint `json:"itemID" binding:"required"`
-	UserID uint `json:"userID" binding:"required"`
+	ID     uint   `gorm:"primarykey" json:"id"`
+	ItemID uint   `json:"itemID" binding:"required"`
+	UserID string `json:"userID" binding:"required"`
 
 	CheckoutDate time.Time `json:"checkoutDate"` // * date of loan creation
 	ExpireDate   time.Time `json:"expireDate"`   // * date of loan expiration
@@ -18,7 +18,7 @@ type Loan struct {
 
 type LoanRepository interface {
 	Create(loan *Loan) error
-	GetByUserID(itemID uint) ([]Loan, error)
+	GetByUserID(itemID string) ([]Loan, error)
 	GetByItemID(itemID uint) ([]Loan, error)
 	GetByID(id uint) (*Loan, error)
 	Update(loan *Loan) error
@@ -37,7 +37,7 @@ func (l *LoanRepositoryImpl) Create(loan *Loan) error {
 	return l.db.Create(loan).Error
 }
 
-func (l *LoanRepositoryImpl) GetByUserID(userID uint) ([]Loan, error) {
+func (l *LoanRepositoryImpl) GetByUserID(userID string) ([]Loan, error) {
 	var loans []Loan
 	if err := l.db.Find(&loans).Where("userID = ?", userID).Error; err != nil {
 		return nil, err

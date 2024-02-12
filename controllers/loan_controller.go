@@ -12,14 +12,9 @@ import (
 
 func GetLoansByUserID(lr types.LoanRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idStr := c.Param("id")
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid loan id"})
-			return
-		}
+		id := c.Param("id")
 
-		loans, err := lr.GetByUserID(uint(id))
+		loans, err := lr.GetByUserID(id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "couldn't fetch loans"})
 			return

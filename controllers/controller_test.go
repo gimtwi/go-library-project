@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strconv"
 	"testing"
 
 	"github.com/gimtwi/go-library-project/types"
@@ -102,16 +101,16 @@ func TestControllers(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		userID := int(response[0].ID)
+		userID := response[0].ID
 
 		//* get user by id
-		getUser, _ := http.NewRequest("GET", "/user/"+strconv.Itoa(userID), nil)
+		getUser, _ := http.NewRequest("GET", "/user/"+userID, nil)
 		wUserID := httptest.NewRecorder()
 		router.ServeHTTP(wUserID, getUser)
 		assert.Equal(t, http.StatusOK, wUserID.Code)
 
 		//* delete user
-		deleteUser, _ := http.NewRequest("DELETE", "/user/"+strconv.Itoa(userID), nil)
+		deleteUser, _ := http.NewRequest("DELETE", "/user/"+userID, nil)
 		wDeleteUser := httptest.NewRecorder()
 		router.ServeHTTP(wDeleteUser, deleteUser)
 		assert.Equal(t, http.StatusNoContent, wDeleteUser.Code)
