@@ -57,7 +57,39 @@ func NewItemRepository(db *gorm.DB) ItemRepository {
 }
 
 func (i *ItemRepositoryImpl) Create(item *Item) error {
-	return i.db.Create(item).Error
+	// Begin a transaction
+	tx := i.db.Begin()
+
+	// Create the item
+	if err := tx.Create(item).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Associate Authors, Genres, and Kinds with the item
+	if len(item.Authors) > 0 {
+		if err := tx.Model(item).Association("Authors").Replace(item.Authors); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if len(item.Genres) > 0 {
+		if err := tx.Model(item).Association("Genres").Replace(item.Genres); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if len(item.Kinds) > 0 {
+		if err := tx.Model(item).Association("Kinds").Replace(item.Kinds); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// Commit the transaction
+	return tx.Commit().Error
 }
 
 func (i *ItemRepositoryImpl) GetAll(order, filter string, limit uint) ([]Item, error) {

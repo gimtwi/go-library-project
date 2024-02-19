@@ -132,7 +132,7 @@ func (ur *UserRepositoryImpl) GetAll() ([]User, error) {
 
 func (ur *UserRepositoryImpl) GetByID(id string) (*User, error) {
 	var user User
-	if err := ur.db.First(&user, id).Error; err != nil {
+	if err := ur.db.Where("id = ?", id).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil

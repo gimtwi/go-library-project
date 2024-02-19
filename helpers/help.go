@@ -7,14 +7,16 @@ import (
 )
 
 func CheckAuthorsGenresKinds(item *types.Item, ar types.AuthorRepository, gr types.GenreRepository, kr types.KindRepository) error {
-	associatedAuthors := make([]types.Author, 0)
-	associatedGenres := make([]types.Genre, 0)
-	associatedKinds := make([]types.Kind, 0)
+	var (
+		associatedAuthors []types.Author
+		associatedGenres  []types.Genre
+		associatedKinds   []types.Kind
+	)
 
 	for _, author := range item.Authors {
 		a, err := ar.GetByID(author.ID)
 		if err != nil {
-			return fmt.Errorf("author not found")
+			return fmt.Errorf("author not found for ID %d: %v", author.ID, err)
 		}
 		associatedAuthors = append(associatedAuthors, *a)
 	}
@@ -22,7 +24,7 @@ func CheckAuthorsGenresKinds(item *types.Item, ar types.AuthorRepository, gr typ
 	for _, genre := range item.Genres {
 		g, err := gr.GetByID(genre.ID)
 		if err != nil {
-			return fmt.Errorf("genre not found")
+			return fmt.Errorf("genre not found for ID %d: %v", genre.ID, err)
 		}
 		associatedGenres = append(associatedGenres, *g)
 	}
@@ -30,7 +32,7 @@ func CheckAuthorsGenresKinds(item *types.Item, ar types.AuthorRepository, gr typ
 	for _, kind := range item.Kinds {
 		k, err := kr.GetByID(kind.ID)
 		if err != nil {
-			return fmt.Errorf("kind not found")
+			return fmt.Errorf("kind not found for ID %d: %v", kind.ID, err)
 		}
 		associatedKinds = append(associatedKinds, *k)
 	}
@@ -43,14 +45,10 @@ func CheckAuthorsGenresKinds(item *types.Item, ar types.AuthorRepository, gr typ
 }
 
 func DisassociateAuthorsGenresKinds(item *types.Item, ir types.ItemRepository) error {
-	var existingItem types.Item
-
-	i, err := ir.GetByID(item.ID)
-
+	existingItem, err := ir.GetByID(item.ID)
 	if err != nil {
 		return fmt.Errorf("item not found")
 	}
-	existingItem = *i
 
 	associatedAuthorIDs := make(map[uint]bool)
 	associatedGenreIDs := make(map[uint]bool)
@@ -70,7 +68,8 @@ func DisassociateAuthorsGenresKinds(item *types.Item, ir types.ItemRepository) e
 
 	for _, existingAuthor := range existingItem.Authors {
 		if !associatedAuthorIDs[existingAuthor.ID] {
-			if err := ir.DisassociateAuthor(&existingItem, &existingAuthor); err != nil {
+			authorCopy := existingAuthor
+			if err := ir.DisassociateAuthor(existingItem, &authorCopy); err != nil {
 				return err
 			}
 		}
@@ -78,7 +77,8 @@ func DisassociateAuthorsGenresKinds(item *types.Item, ir types.ItemRepository) e
 
 	for _, existingGenre := range existingItem.Genres {
 		if !associatedGenreIDs[existingGenre.ID] {
-			if err := ir.DisassociateGenre(&existingItem, &existingGenre); err != nil {
+			genreCopy := existingGenre
+			if err := ir.DisassociateGenre(existingItem, &genreCopy); err != nil {
 				return err
 			}
 		}
@@ -86,7 +86,8 @@ func DisassociateAuthorsGenresKinds(item *types.Item, ir types.ItemRepository) e
 
 	for _, existingKind := range existingItem.Kinds {
 		if !associatedKindIDs[existingKind.ID] {
-			if err := ir.DisassociateKind(&existingItem, &existingKind); err != nil {
+			kindCopy := existingKind
+			if err := ir.DisassociateKind(existingItem, &kindCopy); err != nil {
 				return err
 			}
 		}

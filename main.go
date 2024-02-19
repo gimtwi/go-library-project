@@ -15,9 +15,11 @@ func init() {
 }
 
 func main() {
-	// gin.SetMode(gin.ReleaseMode)
+	utils.CreateDefaultAdmin(utils.DB)
 
 	r := gin.Default()
+	r.ForwardedByClientIP = true
+	r.SetTrustedProxies([]string{"127.0.0.1"})
 
 	userRepo := types.NewUserRepository(utils.DB)
 	itemRepo := types.NewItemRepository(utils.DB)
@@ -29,9 +31,9 @@ func main() {
 
 	// user CRUD controller
 	r.GET("/user", middleware.CheckPrivilege(userRepo, types.Member), controllers.GetAllUsers(userRepo))
-	r.GET("/user/:id", controllers.GetUserByID(userRepo))
-	r.PUT("/user/new-moderator/:id", controllers.AssignRole(userRepo, types.Moderator))
-	r.PUT("/user/new-admin/:id", controllers.AssignRole(userRepo, types.Admin))
+	r.GET("/user/:id", middleware.CheckPrivilege(userRepo, types.Member), controllers.GetUserByID(userRepo))
+	r.PUT("/user/new-moderator/:id", middleware.CheckPrivilege(userRepo, types.Admin), controllers.AssignRole(userRepo, types.Moderator))
+	r.PUT("/user/new-admin/:id", middleware.CheckPrivilege(userRepo, types.Admin), controllers.AssignRole(userRepo, types.Admin))
 	r.PUT("/user/:id/change-password", middleware.CompareCookiesAndParameter(userRepo), controllers.ChangePassword(userRepo))
 	r.DELETE("/user/:id", middleware.CheckPrivilege(userRepo, types.Moderator), controllers.DeleteUser(userRepo))
 

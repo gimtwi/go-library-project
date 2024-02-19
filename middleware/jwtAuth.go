@@ -78,6 +78,11 @@ func CheckPrivilege(ur types.UserRepository, role types.UserRole) gin.HandlerFun
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}
 
+			if user == nil {
+				c.AbortWithStatus(http.StatusUnauthorized)
+				return
+			}
+
 			requiredRole := role
 
 			if !types.CheckPrivilege(user.Role, requiredRole) {

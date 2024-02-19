@@ -71,7 +71,7 @@ func RegisterUser(ur types.UserRepository) gin.HandlerFunc {
 			return
 		}
 
-		user.ID = uuid.New().String()
+		user.ID = uuid.NewString()
 		user.Role = types.Member
 		user.Password = hash
 
@@ -123,7 +123,7 @@ func Login(ur types.UserRepository) gin.HandlerFunc {
 func Logout(ur types.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.SetCookie(os.Getenv("COOKIE_NAME"), "", -1, "/", "", false, true)
-		c.Redirect(http.StatusSeeOther, "/login")
+		c.JSON(http.StatusOK, gin.H{"message": "ok bye!"})
 	}
 }
 

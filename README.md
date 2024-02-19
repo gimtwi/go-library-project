@@ -26,3 +26,12 @@ Before you can run this application, make sure you have the following prerequisi
    ```bash
    docker run --name go-library-test -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=password -e POSTGRES_DB=library-project-test -p 5433:5432 -d postgres
 
+4. Create default user in config.json:
+   ```bash
+   {
+      "database": {
+         "username": "your_database_username",
+         "hashed_admin_password": "generated_hashed_password_here"
+      }
+   }
+
